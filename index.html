@@ -260,6 +260,7 @@
 
 <!-- =============== SCRIPTS =============== -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 // =====================================================================
 //  CONFIGURACIÓN — REEMPLAZAR ESTOS DOS VALORES con los de tu Supabase
@@ -389,7 +390,8 @@ const state = {
   allPredictions: [],    // [{ user_name, match_id, home_score, away_score }]
   activeGroup: "A",
   adminUnlocked: false,
-  adminTab: "results",        // results | users | lock
+  adminTab: "results",        // results | users | picks | lock
+  adminSelectedUser: null,    // usuario seleccionado en admin → ver picks
   predictionsLocked: false,   // si true, los usuarios no pueden cambiar predicciones
   configError: false,
   sb: null,
@@ -720,11 +722,27 @@ function renderPredict() {
       🔒 Las predicciones están CERRADAS. Ya no puedes modificar tus picks.
     </div>` : "";
 
+  // Botón de descargar PDF (solo activo si están completos los 72)
+  const pdfReady = totalPreds === 72;
+  const pdfButton = `
+    <div style="margin:12px 0;text-align:center;">
+      <button class="btn-primary"
+        ${pdfReady ? "" : "disabled"}
+        onclick="onDownloadPDF()"
+        style="${pdfReady ? '' : 'opacity:0.5;cursor:not-allowed;'}max-width:400px;">
+        ${pdfReady
+          ? '📄 Descargar mis predicciones en PDF'
+          : `📄 Completa todos los partidos para descargar (faltan ${72 - totalPreds})`}
+      </button>
+    </div>
+  `;
+
   document.getElementById("app").innerHTML = `
     <div class="card">
       <h2>🎯 Mis Predicciones</h2>
       ${lockBanner}
       <p class="small">${locked ? 'Tus picks están congelados. Mira la tabla para ver tu progreso.' : 'Llena los marcadores. Se guarda automático al cambiar de campo.'} ${totalPreds}/72 partidos predichos.</p>
+      ${pdfButton}
       <div class="group-tabs">${groupTabs}</div>
       <h3>Grupo ${state.activeGroup}</h3>
       ${matchesHtml}
@@ -796,12 +814,14 @@ function renderAdmin() {
     <div class="group-tabs" style="margin-bottom:20px;">
       <button class="${state.adminTab==='results'?'active':''}" onclick="setAdminTab('results')">📊 Resultados</button>
       <button class="${state.adminTab==='users'?'active':''}" onclick="setAdminTab('users')">👥 Usuarios</button>
+      <button class="${state.adminTab==='picks'?'active':''}" onclick="setAdminTab('picks')">🔍 Ver Picks</button>
       <button class="${state.adminTab==='lock'?'active':''}" onclick="setAdminTab('lock')">${state.predictionsLocked ? '🔒' : '🔓'} Bloqueo</button>
     </div>
   `;
 
   if (state.adminTab === "users") return renderAdminUsers(subTabs);
   if (state.adminTab === "lock") return renderAdminLock(subTabs);
+  if (state.adminTab === "picks") return renderAdminPicks(subTabs);
   return renderAdminResults(subTabs);
 }
 
@@ -919,6 +939,91 @@ function renderAdminUsers(subTabs) {
   `;
 }
 
+function renderAdminPicks(subTabs) {
+  // Si no hay usuario seleccionado, usar el primero
+  if (!state.adminSelectedUser && state.allUsers.length > 0) {
+    state.adminSelectedUser = state.allUsers[0].name;
+  }
+  const selectedUser = state.adminSelectedUser;
+
+  // Predicciones del usuario seleccionado
+  const userPreds = {};
+  state.allPredictions
+    .filter(p => p.user_name === selectedUser)
+    .forEach(p => { userPreds[p.match_id] = { home: p.home_score, away: p.away_score }; });
+
+  const totalPreds = Object.keys(userPreds).length;
+  let totalPts = 0;
+
+  // Construir HTML de partidos agrupados
+  let groupsHtml = "";
+  if (selectedUser) {
+    Object.keys(GROUPS).forEach(g => {
+      const groupMatches = MATCHES.filter(m => m.group === g);
+      const rows = groupMatches.map(m => {
+        const p = userPreds[m.id];
+        const r = state.results[m.id];
+        let predText = '<span style="opacity:.4;">— sin pick —</span>';
+        let badge = '';
+        if (p) {
+          predText = `<strong style="color:#facc15;">${p.home} - ${p.away}</strong>`;
+          if (r) {
+            const pts = calcPoints(p, r);
+            if (pts != null) totalPts += pts;
+            const cls = pts === 3 ? 'points-3' : pts === 1 ? 'points-1' : 'points-0';
+            const label = pts === 3 ? '+3' : pts === 1 ? '+1' : '0';
+            badge = `<span class="${cls}" style="font-weight:700;margin-left:8px;">${label}</span>`;
+          }
+        }
+        const realScore = r ? `<span class="small" style="opacity:.6;">(real: ${r.home}-${r.away})</span>` : '';
+        return `
+          <div style="display:grid;grid-template-columns:1fr 100px 1fr auto;align-items:center;gap:8px;padding:6px 10px;background:rgba(0,0,0,0.2);border-radius:6px;margin-bottom:4px;font-size:13px;">
+            <div style="display:flex;align-items:center;gap:6px;">${flag(m.home)} ${m.home}</div>
+            <div style="text-align:center;">${predText}${badge}</div>
+            <div style="text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:6px;">${m.away} ${flag(m.away)}</div>
+            <div>${realScore}</div>
+          </div>
+        `;
+      }).join("");
+      groupsHtml += `
+        <h4 style="color:#facc15;margin-top:14px;margin-bottom:6px;">Grupo ${g}</h4>
+        ${rows}
+      `;
+    });
+  }
+
+  const userOptions = state.allUsers
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(u => `<option value="${u.name}" ${u.name===selectedUser?'selected':''}>${u.name}</option>`)
+    .join("");
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>⚙️ Admin</h2>
+      ${subTabs}
+      <h3>🔍 Ver picks de un participante</h3>
+      ${state.allUsers.length === 0 ? `
+        <p class="small">No hay usuarios registrados todavía.</p>
+      ` : `
+        <div style="background:rgba(0,0,0,0.3);padding:14px;border-radius:8px;margin-bottom:16px;">
+          <label>Selecciona un participante:</label>
+          <select id="adminUserSelect" onchange="onAdminUserChange(this.value)" style="margin-top:4px;">
+            ${userOptions}
+          </select>
+        </div>
+        ${selectedUser ? `
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px;">
+            <span class="badge">${totalPreds}/72 predicciones</span>
+            <span class="badge" style="background:rgba(74,222,128,0.2);color:#4ade80;">${totalPts} pts acumulados</span>
+          </div>
+          ${groupsHtml}
+        ` : ''}
+      `}
+    </div>
+  `;
+}
+
 function renderAdminLock(subTabs) {
   const locked = state.predictionsLocked;
   document.getElementById("app").innerHTML = `
@@ -949,6 +1054,8 @@ function renderAdminLock(subTabs) {
 }
 
 function setAdminTab(t) { state.adminTab = t; renderAdmin(); }
+function adminUserChange(name) { state.adminSelectedUser = name; renderAdmin(); }
+window.onAdminUserChange = adminUserChange;
 
 async function refreshUsers() {
   await loadAll();
@@ -1038,6 +1145,109 @@ function exitAdmin() {
   state.view = "login";
   render();
 }
+
+function downloadPDF() {
+  // Validar completitud
+  const completed = Object.entries(state.predictions).filter(([id, p]) =>
+    p && p.home !== "" && p.away !== "" && p.home != null && p.away != null
+  ).length;
+  if (completed < 72) {
+    return toast(`Te faltan ${72 - completed} partidos por predecir`, "error");
+  }
+  if (!window.jspdf) return toast("Error al cargar generador PDF", "error");
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const pageW = doc.internal.pageSize.getWidth();
+  let y = 18;
+
+  // Título
+  doc.setFontSize(20);
+  doc.setTextColor(15, 23, 42);
+  doc.setFont(undefined, "bold");
+  doc.text("Mundial 2026 - Quiniela", pageW / 2, y, { align: "center" });
+  y += 8;
+
+  doc.setFontSize(12);
+  doc.setFont(undefined, "normal");
+  doc.setTextColor(80, 80, 80);
+  doc.text(`Participante: ${state.user.name}`, pageW / 2, y, { align: "center" });
+  y += 5;
+  doc.text(`Fecha: ${new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}`, pageW / 2, y, { align: "center" });
+  y += 4;
+  doc.setDrawColor(250, 204, 21);
+  doc.setLineWidth(0.5);
+  doc.line(20, y, pageW - 20, y);
+  y += 8;
+
+  doc.setTextColor(0, 0, 0);
+
+  // Grupos en 2 columnas
+  const groupKeys = Object.keys(GROUPS);
+  let col = 0;
+  let yLeft = y, yRight = y;
+  const colWidth = (pageW - 40) / 2;
+  const xLeft = 20, xRight = 20 + colWidth + 5;
+
+  groupKeys.forEach((g, idx) => {
+    const x = col === 0 ? xLeft : xRight;
+    let yCol = col === 0 ? yLeft : yRight;
+
+    // Salto de página si no cabe
+    if (yCol > 260) {
+      doc.addPage();
+      yLeft = 20;
+      yRight = 20;
+      yCol = 20;
+    }
+
+    doc.setFontSize(12);
+    doc.setFont(undefined, "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.setFillColor(250, 204, 21);
+    doc.rect(x, yCol - 4, colWidth - 5, 6, "F");
+    doc.text(`Grupo ${g}`, x + 2, yCol);
+    yCol += 6;
+
+    doc.setFontSize(9);
+    doc.setFont(undefined, "normal");
+    doc.setTextColor(40, 40, 40);
+
+    MATCHES.filter(m => m.group === g).forEach(m => {
+      const p = state.predictions[m.id];
+      // Truncar nombres de equipos para que entren en columna
+      const trim = (s) => s.length > 14 ? s.substring(0, 13) + "." : s;
+      const homeTeam = trim(m.home);
+      const awayTeam = trim(m.away);
+      doc.text(homeTeam, x + 2, yCol);
+      doc.setFont(undefined, "bold");
+      doc.text(`${p.home}-${p.away}`, x + colWidth/2 - 2, yCol, { align: "center" });
+      doc.setFont(undefined, "normal");
+      doc.text(awayTeam, x + colWidth - 7, yCol, { align: "right" });
+      yCol += 4.5;
+    });
+    yCol += 3;
+
+    if (col === 0) yLeft = yCol; else yRight = yCol;
+    col = (col + 1) % 2;
+  });
+
+  // Footer
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(128, 128, 128);
+    doc.text("Marcador exacto: 3 pts  |  Solo ganador: 1 pt", pageW / 2, 285, { align: "center" });
+    doc.text(`Página ${i} de ${pageCount}`, pageW / 2, 290, { align: "center" });
+  }
+
+  const safeName = state.user.name.replace(/[^a-zA-Z0-9]/g, "_");
+  doc.save(`mundial2026-quiniela-${safeName}.pdf`);
+  toast("📄 PDF descargado");
+}
+
+window.onDownloadPDF = downloadPDF;
 
 window.go = go;
 window.logout = logout;
