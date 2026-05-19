@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mundial 2026 - Quiniela</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
+  <style>
+    *,*::before,*::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #f1f5f9;
+      min-height: 100vh;
+    }
+    header {
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 2px solid #facc15;
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(8px);
+    }
+    .brand {
+      font-size: 22px;
+      font-weight: 800;
+      color: #facc15;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    .nav button {
+      background: rgba(255,255,255,0.08);
+      color: #f1f5f9;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .nav button:hover { background: rgba(255,255,255,0.15); }
+    .nav button.active {
+      background: #facc15;
+      color: #0f172a;
+      border-color: #facc15;
+    }
+    main { padding: 20px; max-width: 1100px; margin: 0 auto; }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    h1, h2, h3 { margin: 0 0 12px 0; }
+    h1 { color: #facc15; font-size: 28px; }
+    h2 { color: #facc15; font-size: 22px; }
+    h3 { color: #fde68a; font-size: 18px; }
+    p { line-height: 1.5; color: #cbd5e1; }
+    input, select, button {
+      font-family: inherit;
+      font-size: 14px;
+    }
+    input[type="text"], input[type="password"], input[type="number"], select {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #f1f5f9;
+      padding: 10px 12px;
+      border-radius: 8px;
+      width: 100%;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: #facc15; }
+    label { display: block; margin-bottom: 4px; font-size: 13px; color: #94a3b8; font-weight: 600; }
+    .btn-primary {
+      background: #facc15;
+      color: #0f172a;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 15px;
+      width: 100%;
+      transition: all 0.15s;
+    }
+    .btn-primary:hover { background: #fde047; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: #f1f5f9;
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.15); }
+    .group-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .group-tabs button {
+      background: rgba(255,255,255,0.05);
+      color: #cbd5e1;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      min-width: 50px;
+    }
+    .group-tabs button.active {
+      background: #facc15;
+      color: #0f172a;
+      border-color: #facc15;
+    }
+    .match-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .match-team {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+    .match-team.away { justify-content: flex-end; }
+    .match-team .flag { font-size: 20px; }
+    .match-scores {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .match-scores input {
+      width: 48px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 6px;
+    }
+    .match-meta {
+      grid-column: 1 / -1;
+      font-size: 12px;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 4px;
+    }
+    .match-points {
+      grid-column: 1 / -1;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .points-3 { color: #4ade80; }
+    .points-1 { color: #facc15; }
+    .points-0 { color: #f87171; }
+    .leaderboard {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .leaderboard th, .leaderboard td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .leaderboard th {
+      background: rgba(0,0,0,0.3);
+      color: #facc15;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+    .leaderboard tr:first-child td { font-weight: 700; }
+    .leaderboard .rank {
+      font-weight: 700;
+      width: 50px;
+    }
+    .leaderboard .rank.gold { color: #facc15; }
+    .leaderboard .rank.silver { color: #cbd5e1; }
+    .leaderboard .rank.bronze { color: #d97706; }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #16a34a;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      z-index: 200;
+      animation: slide-up 0.2s;
+    }
+    .toast.error { background: #dc2626; }
+    @keyframes slide-up {
+      from { opacity: 0; transform: translate(-50%, 20px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    .form-row { display: grid; gap: 12px; margin-bottom: 12px; }
+    .form-row.two { grid-template-columns: 1fr 1fr; }
+    .config-warning {
+      background: rgba(220, 38, 38, 0.15);
+      border: 2px solid #dc2626;
+      color: #fca5a5;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .badge {
+      background: rgba(250, 204, 21, 0.2);
+      color: #facc15;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .small { font-size: 13px; color: #94a3b8; }
+    .center { text-align: center; }
+    .loading { text-align: center; padding: 40px; color: #94a3b8; }
+    @media (max-width: 600px) {
+      .match-row { grid-template-columns: 1fr; }
+      .match-team.away { justify-content: flex-start; }
+      .match-scores { justify-content: center; }
+      .form-row.two { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- =============== HEADER =============== -->
+<header>
+  <div class="brand">⚽ Mundial 2026</div>
+  <div class="nav" id="nav"></div>
+</header>
+
+<!-- =============== MAIN =============== -->
+<main id="app">
+  <div class="loading">Cargando…</div>
+</main>
+
+<!-- =============== SCRIPTS =============== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// =====================================================================
+//  CONFIGURACIÓN — REEMPLAZAR ESTOS DOS VALORES con los de tu Supabase
+// =====================================================================
+const SUPABASE_URL  = "TU_SUPABASE_URL_AQUI";     // ej: https://abcdefg.supabase.co
+const SUPABASE_ANON = "TU_SUPABASE_ANON_KEY_AQUI"; // ej: eyJhbGc...
+const ADMIN_PASSWORD = "admin2026";                // contraseña del panel admin
+// =====================================================================
+
+const SCORING = { EXACT: 3, WINNER: 1 };
+
+const GROUPS = {
+  A: ["México", "Sudáfrica", "Rep. de Corea", "Chequia"],
+  B: ["Canadá", "Qatar", "Suiza", "Bosnia y Herz."],
+  C: ["Brasil", "Marruecos", "Escocia", "Haití"],
+  D: ["EE.UU.", "Paraguay", "Australia", "Turquía"],
+  E: ["Alemania", "Ecuador", "Costa de Marfil", "Curazao"],
+  F: ["Países Bajos", "Japón", "Túnez", "Suecia"],
+  G: ["Bélgica", "Irán", "Egipto", "Nueva Zelanda"],
+  H: ["España", "Uruguay", "Arabia Saudí", "Cabo Verde"],
+  I: ["Francia", "Senegal", "Noruega", "Irak"],
+  J: ["Argentina", "Argelia", "Austria", "Jordania"],
+  K: ["Portugal", "Colombia", "Uzbekistán", "RD del Congo"],
+  L: ["Inglaterra", "Croacia", "Ghana", "Panamá"],
+};
+
+const MATCHES = [
+  {id:"p01",group:"A",home:"México",away:"Sudáfrica",date:"Jue 11 Jun",stadium:"Ciudad de México"},
+  {id:"p02",group:"A",home:"Rep. de Corea",away:"Chequia",date:"Vie 12 Jun",stadium:"Toronto"},
+  {id:"p03",group:"A",home:"México",away:"Chequia",date:"Jue 18 Jun",stadium:"Guadalajara"},
+  {id:"p04",group:"A",home:"Sudáfrica",away:"Rep. de Corea",date:"Jue 18 Jun",stadium:"BC Place Vancouver"},
+  {id:"p05",group:"A",home:"Sudáfrica",away:"Chequia",date:"Mié 24 Jun",stadium:"Monterrey"},
+  {id:"p06",group:"A",home:"México",away:"Rep. de Corea",date:"Mié 24 Jun",stadium:"Ciudad de México"},
+  {id:"p07",group:"B",home:"Canadá",away:"Bosnia y Herz.",date:"Vie 12 Jun",stadium:"Los Ángeles"},
+  {id:"p08",group:"B",home:"Qatar",away:"Suiza",date:"Sáb 13 Jun",stadium:"Bahía de SF"},
+  {id:"p09",group:"B",home:"Canadá",away:"Qatar",date:"Jue 18 Jun",stadium:"Los Ángeles"},
+  {id:"p10",group:"B",home:"Bosnia y Herz.",away:"Suiza",date:"Vie 19 Jun",stadium:"Gillette"},
+  {id:"p11",group:"B",home:"Suiza",away:"Bosnia y Herz.",date:"Mié 24 Jun",stadium:"Seattle"},
+  {id:"p12",group:"B",home:"Qatar",away:"Canadá",date:"Mié 24 Jun",stadium:"BC Place Vancouver"},
+  {id:"p13",group:"C",home:"Brasil",away:"Marruecos",date:"Sáb 13 Jun",stadium:"Nueva York/NJ"},
+  {id:"p14",group:"C",home:"Escocia",away:"Haití",date:"Sáb 13 Jun",stadium:"Gillette"},
+  {id:"p15",group:"C",home:"Brasil",away:"Haití",date:"Vie 19 Jun",stadium:"Filadelfia"},
+  {id:"p16",group:"C",home:"Escocia",away:"Marruecos",date:"Vie 19 Jun",stadium:"Gillette"},
+  {id:"p17",group:"C",home:"Marruecos",away:"Haití",date:"Jue 25 Jun",stadium:"Bahía de SF"},
+  {id:"p18",group:"C",home:"Brasil",away:"Escocia",date:"Jue 25 Jun",stadium:"Los Ángeles"},
+  {id:"p19",group:"D",home:"EE.UU.",away:"Paraguay",date:"Dom 14 Jun",stadium:"Houston"},
+  {id:"p20",group:"D",home:"Australia",away:"Turquía",date:"Dom 14 Jun",stadium:"Filadelfia"},
+  {id:"p21",group:"D",home:"EE.UU.",away:"Turquía",date:"Sáb 20 Jun",stadium:"Toronto"},
+  {id:"p22",group:"D",home:"Paraguay",away:"Australia",date:"Sáb 20 Jun",stadium:"Kansas City"},
+  {id:"p23",group:"D",home:"Turquía",away:"Paraguay",date:"Jue 25 Jun",stadium:"Filadelfia"},
+  {id:"p24",group:"D",home:"Australia",away:"EE.UU.",date:"Jue 25 Jun",stadium:"Nueva York/NJ"},
+  {id:"p25",group:"E",home:"Alemania",away:"Ecuador",date:"Dom 14 Jun",stadium:"Dallas"},
+  {id:"p26",group:"E",home:"Costa de Marfil",away:"Curazao",date:"Dom 14 Jun",stadium:"Monterrey"},
+  {id:"p27",group:"E",home:"Alemania",away:"Costa de Marfil",date:"Sáb 20 Jun",stadium:"Houston"},
+  {id:"p28",group:"E",home:"Ecuador",away:"Curazao",date:"Sáb 20 Jun",stadium:"Monterrey"},
+  {id:"p29",group:"E",home:"Curazao",away:"Alemania",date:"Jue 25 Jun",stadium:"Dallas"},
+  {id:"p30",group:"E",home:"Ecuador",away:"Costa de Marfil",date:"Jue 25 Jun",stadium:"Kansas City"},
+  {id:"p31",group:"F",home:"Países Bajos",away:"Japón",date:"Lun 15 Jun",stadium:"Seattle"},
+  {id:"p32",group:"F",home:"Túnez",away:"Suecia",date:"Lun 15 Jun",stadium:"Atlanta"},
+  {id:"p33",group:"F",home:"Países Bajos",away:"Túnez",date:"Dom 21 Jun",stadium:"Los Ángeles"},
+  {id:"p34",group:"F",home:"Japón",away:"Suecia",date:"Dom 21 Jun",stadium:"BC Place Vancouver"},
+  {id:"p35",group:"F",home:"Suecia",away:"Países Bajos",date:"Sáb 27 Jun",stadium:"BC Place Vancouver"},
+  {id:"p36",group:"F",home:"Japón",away:"Túnez",date:"Sáb 27 Jun",stadium:"Seattle"},
+  {id:"p37",group:"G",home:"Bélgica",away:"Irán",date:"Lun 15 Jun",stadium:"Los Ángeles"},
+  {id:"p38",group:"G",home:"Egipto",away:"Nueva Zelanda",date:"Lun 15 Jun",stadium:"Miami"},
+  {id:"p39",group:"G",home:"Bélgica",away:"Egipto",date:"Dom 21 Jun",stadium:"Atlanta"},
+  {id:"p40",group:"G",home:"Nueva Zelanda",away:"Irán",date:"Dom 21 Jun",stadium:"Miami"},
+  {id:"p41",group:"G",home:"Irán",away:"Bélgica",date:"Vie 26 Jun",stadium:"Houston"},
+  {id:"p42",group:"G",home:"Nueva Zelanda",away:"Egipto",date:"Vie 26 Jun",stadium:"Guadalajara"},
+  {id:"p43",group:"H",home:"España",away:"Uruguay",date:"Mar 16 Jun",stadium:"Nueva York/NJ"},
+  {id:"p44",group:"H",home:"Arabia Saudí",away:"Cabo Verde",date:"Mar 16 Jun",stadium:"Boston"},
+  {id:"p45",group:"H",home:"España",away:"Arabia Saudí",date:"Lun 22 Jun",stadium:"Filadelfia"},
+  {id:"p46",group:"H",home:"Uruguay",away:"Cabo Verde",date:"Lun 22 Jun",stadium:"Nueva York/NJ"},
+  {id:"p47",group:"H",home:"Cabo Verde",away:"España",date:"Vie 26 Jun",stadium:"Toronto"},
+  {id:"p48",group:"H",home:"Uruguay",away:"Arabia Saudí",date:"Vie 26 Jun",stadium:"Boston"},
+  {id:"p49",group:"I",home:"Francia",away:"Senegal",date:"Mar 16 Jun",stadium:"Kansas City"},
+  {id:"p50",group:"I",home:"Noruega",away:"Irak",date:"Mié 17 Jun",stadium:"Houston"},
+  {id:"p51",group:"I",home:"Francia",away:"Noruega",date:"Lun 22 Jun",stadium:"Dallas"},
+  {id:"p52",group:"I",home:"Irak",away:"Senegal",date:"Mar 23 Jun",stadium:"Houston"},
+  {id:"p53",group:"I",home:"Senegal",away:"Noruega",date:"Sáb 27 Jun",stadium:"Atlanta"},
+  {id:"p54",group:"I",home:"Irak",away:"Francia",date:"Sáb 27 Jun",stadium:"Kansas City"},
+  {id:"p55",group:"J",home:"Argentina",away:"Argelia",date:"Mar 16 Jun",stadium:"Bahía de SF"},
+  {id:"p56",group:"J",home:"Austria",away:"Jordania",date:"Mié 17 Jun",stadium:"Ciudad de México"},
+  {id:"p57",group:"J",home:"Argentina",away:"Austria",date:"Lun 22 Jun",stadium:"Bahía de SF"},
+  {id:"p58",group:"J",home:"Jordania",away:"Argelia",date:"Mar 23 Jun",stadium:"Guadalajara"},
+  {id:"p59",group:"J",home:"Argelia",away:"Austria",date:"Sáb 27 Jun",stadium:"Dallas"},
+  {id:"p60",group:"J",home:"Jordania",away:"Argentina",date:"Sáb 27 Jun",stadium:"Miami"},
+  {id:"p61",group:"K",home:"Portugal",away:"RD del Congo",date:"Mié 17 Jun",stadium:"Dallas"},
+  {id:"p62",group:"K",home:"Colombia",away:"Uzbekistán",date:"Mié 17 Jun",stadium:"Toronto"},
+  {id:"p63",group:"K",home:"Portugal",away:"Colombia",date:"Mar 23 Jun",stadium:"Boston"},
+  {id:"p64",group:"K",home:"Uzbekistán",away:"RD del Congo",date:"Mar 23 Jun",stadium:"Toronto"},
+  {id:"p65",group:"K",home:"RD del Congo",away:"Colombia",date:"Sáb 27 Jun",stadium:"Filadelfia"},
+  {id:"p66",group:"K",home:"Uzbekistán",away:"Portugal",date:"Sáb 27 Jun",stadium:"Nueva York/NJ"},
+  {id:"p67",group:"L",home:"Inglaterra",away:"Croacia",date:"Mié 17 Jun",stadium:"Kansas City"},
+  {id:"p68",group:"L",home:"Ghana",away:"Panamá",date:"Jue 19 Jun",stadium:"Bahía de SF"},
+  {id:"p69",group:"L",home:"Inglaterra",away:"Ghana",date:"Mar 23 Jun",stadium:"Boston"},
+  {id:"p70",group:"L",home:"Panamá",away:"Croacia",date:"Mié 17 Jun",stadium:"Toronto"},
+  {id:"p71",group:"L",home:"Croacia",away:"Ghana",date:"Sáb 27 Jun",stadium:"Dallas"},
+  {id:"p72",group:"L",home:"Panamá",away:"Inglaterra",date:"Sáb 27 Jun",stadium:"Miami"},
+];
+
+const FLAGS = {
+  "México":"🇲🇽","Sudáfrica":"🇿🇦","Rep. de Corea":"🇰🇷","Chequia":"🇨🇿",
+  "Canadá":"🇨🇦","Qatar":"🇶🇦","Suiza":"🇨🇭","Bosnia y Herz.":"🇧🇦",
+  "Brasil":"🇧🇷","Marruecos":"🇲🇦","Escocia":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","Haití":"🇭🇹",
+  "EE.UU.":"🇺🇸","Paraguay":"🇵🇾","Australia":"🇦🇺","Turquía":"🇹🇷",
+  "Alemania":"🇩🇪","Ecuador":"🇪🇨","Costa de Marfil":"🇨🇮","Curazao":"🇨🇼",
+  "Países Bajos":"🇳🇱","Japón":"🇯🇵","Túnez":"🇹🇳","Suecia":"🇸🇪",
+  "Bélgica":"🇧🇪","Irán":"🇮🇷","Egipto":"🇪🇬","Nueva Zelanda":"🇳🇿",
+  "España":"🇪🇸","Uruguay":"🇺🇾","Arabia Saudí":"🇸🇦","Cabo Verde":"🇨🇻",
+  "Francia":"🇫🇷","Senegal":"🇸🇳","Noruega":"🇳🇴","Irak":"🇮🇶",
+  "Argentina":"🇦🇷","Argelia":"🇩🇿","Austria":"🇦🇹","Jordania":"🇯🇴",
+  "Portugal":"🇵🇹","Colombia":"🇨🇴","Uzbekistán":"🇺🇿","RD del Congo":"🇨🇩",
+  "Inglaterra":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","Croacia":"🇭🇷","Ghana":"🇬🇭","Panamá":"🇵🇦",
+};
+const flag = (t) => FLAGS[t] || "🏳️";
+
+// =====================================================================
+//  Estado de la aplicación
+// =====================================================================
+const state = {
+  user: null,            // { name }
+  view: "login",         // login | predict | board | admin
+  predictions: {},       // { match_id: { home, away } } del usuario actual
+  results: {},           // { match_id: { home, away } }
+  allUsers: [],          // [{ name }]
+  allPredictions: [],    // [{ user_name, match_id, home_score, away_score }]
+  activeGroup: "A",
+  adminUnlocked: false,
+  configError: false,
+  sb: null,
+};
+
+// =====================================================================
+//  Inicialización Supabase
+// =====================================================================
+function initSupabase() {
+  if (!SUPABASE_URL || SUPABASE_URL.includes("TU_SUPABASE_URL")) {
+    state.configError = true;
+    return;
+  }
+  state.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+}
+
+// =====================================================================
+//  Hash simple SHA-256 para contraseñas
+// =====================================================================
+async function hashPass(pw) {
+  const buf = new TextEncoder().encode(pw + "mundial26-salt");
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// =====================================================================
+//  Scoring: 3 pts marcador exacto, 1 pt ganador correcto, 0 si falla
+// =====================================================================
+function calcPoints(pred, result) {
+  if (!pred || !result) return null;
+  const ph = parseInt(pred.home), pa = parseInt(pred.away);
+  const rh = parseInt(result.home), ra = parseInt(result.away);
+  if (isNaN(ph) || isNaN(pa) || isNaN(rh) || isNaN(ra)) return null;
+  if (ph === rh && pa === ra) return SCORING.EXACT;
+  const pw = ph > pa ? "h" : pa > ph ? "a" : "d";
+  const rw = rh > ra ? "h" : ra > rh ? "a" : "d";
+  return pw === rw ? SCORING.WINNER : 0;
+}
+
+// =====================================================================
+//  Toast
+// =====================================================================
+function toast(msg, type = "ok") {
+  const old = document.querySelector(".toast");
+  if (old) old.remove();
+  const el = document.createElement("div");
+  el.className = "toast" + (type === "error" ? " error" : "");
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
+// =====================================================================
+//  Carga de datos remota
+// =====================================================================
+async function loadAll() {
+  if (!state.sb) return;
+  try {
+    const [users, preds, res] = await Promise.all([
+      state.sb.from("users").select("name"),
+      state.sb.from("predictions").select("*"),
+      state.sb.from("results").select("*"),
+    ]);
+    state.allUsers = users.data || [];
+    state.allPredictions = preds.data || [];
+    state.results = {};
+    (res.data || []).forEach(r => {
+      state.results[r.match_id] = { home: r.home_score, away: r.away_score };
+    });
+    if (state.user) {
+      state.predictions = {};
+      state.allPredictions
+        .filter(p => p.user_name === state.user.name)
+        .forEach(p => {
+          state.predictions[p.match_id] = { home: p.home_score, away: p.away_score };
+        });
+    }
+  } catch (e) {
+    console.error(e);
+    toast("Error al cargar datos", "error");
+  }
+}
+
+// =====================================================================
+//  Login / Registro
+// =====================================================================
+async function login(name, password) {
+  name = name.trim();
+  if (!name || !password) return toast("Completa nombre y contraseña", "error");
+  const hash = await hashPass(password);
+  const { data: existing } = await state.sb.from("users").select("*").eq("name", name).maybeSingle();
+  if (existing) {
+    if (existing.pass_hash !== hash) return toast("Contraseña incorrecta", "error");
+  } else {
+    const { error } = await state.sb.from("users").insert({ name, pass_hash: hash });
+    if (error) return toast("No se pudo crear el usuario: " + error.message, "error");
+    toast("¡Bienvenido " + name + "!");
+  }
+  state.user = { name };
+  localStorage.setItem("mundial26_user", JSON.stringify(state.user));
+  await loadAll();
+  state.view = "predict";
+  render();
+}
+
+function logout() {
+  state.user = null;
+  state.predictions = {};
+  state.adminUnlocked = false;
+  localStorage.removeItem("mundial26_user");
+  state.view = "login";
+  render();
+}
+
+// =====================================================================
+//  Guardar predicción de un partido
+// =====================================================================
+async function savePrediction(matchId) {
+  const p = state.predictions[matchId];
+  if (!p || p.home === "" || p.away === "" || p.home == null || p.away == null) return;
+  const h = parseInt(p.home), a = parseInt(p.away);
+  if (isNaN(h) || isNaN(a) || h < 0 || a < 0) return;
+  const { error } = await state.sb.from("predictions").upsert({
+    user_name: state.user.name,
+    match_id: matchId,
+    home_score: h,
+    away_score: a,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) toast("Error al guardar: " + error.message, "error");
+}
+
+function setPredField(matchId, side, val) {
+  if (!state.predictions[matchId]) state.predictions[matchId] = { home: "", away: "" };
+  state.predictions[matchId][side] = val;
+}
+
+// =====================================================================
+//  Admin: guardar resultado real
+// =====================================================================
+async function saveResult(matchId, home, away) {
+  const h = parseInt(home), a = parseInt(away);
+  if (isNaN(h) || isNaN(a) || h < 0 || a < 0) return toast("Marcador inválido", "error");
+  const { error } = await state.sb.from("results").upsert({
+    match_id: matchId,
+    home_score: h,
+    away_score: a,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) return toast("Error: " + error.message, "error");
+  state.results[matchId] = { home: h, away: a };
+  toast("✅ Resultado guardado");
+  renderAdmin();
+  // refresh leaderboard data
+  const { data: preds } = await state.sb.from("predictions").select("*");
+  state.allPredictions = preds || [];
+}
+
+async function clearResult(matchId) {
+  if (!confirm("¿Borrar el resultado de este partido?")) return;
+  const { error } = await state.sb.from("results").delete().eq("match_id", matchId);
+  if (error) return toast("Error: " + error.message, "error");
+  delete state.results[matchId];
+  toast("Resultado borrado");
+  renderAdmin();
+}
+
+// =====================================================================
+//  Tabla de posiciones
+// =====================================================================
+function getLeaderboard() {
+  const totals = {};
+  state.allUsers.forEach(u => { totals[u.name] = 0; });
+  state.allPredictions.forEach(p => {
+    const r = state.results[p.match_id];
+    if (!r) return;
+    const pts = calcPoints({ home: p.home_score, away: p.away_score }, r);
+    if (pts != null && pts > 0) totals[p.user_name] = (totals[p.user_name] || 0) + pts;
+  });
+  return Object.entries(totals)
+    .map(([name, pts]) => ({ name, pts }))
+    .sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
+}
+
+// =====================================================================
+//  RENDER
+// =====================================================================
+function render() {
+  renderNav();
+  if (state.configError) return renderConfigError();
+  if (!state.user) return renderLogin();
+  if (state.view === "predict") return renderPredict();
+  if (state.view === "board") return renderBoard();
+  if (state.view === "admin") return renderAdmin();
+}
+
+function renderNav() {
+  const nav = document.getElementById("nav");
+  if (!state.user) { nav.innerHTML = ""; return; }
+  nav.innerHTML = `
+    <button class="${state.view==='predict'?'active':''}" onclick="go('predict')">🎯 Mis Picks</button>
+    <button class="${state.view==='board'?'active':''}" onclick="go('board')">🏆 Tabla</button>
+    <button class="${state.view==='admin'?'active':''}" onclick="go('admin')">⚙️ Admin</button>
+    <span class="badge">${state.user.name}</span>
+    <button onclick="logout()">Salir</button>
+  `;
+}
+
+function go(view) { state.view = view; render(); }
+
+function renderConfigError() {
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <div class="config-warning">
+        ⚠️ Falta configurar Supabase
+      </div>
+      <p>Antes de usar la app necesitas conectarla a tu proyecto Supabase. Abre el archivo <code>index.html</code> y reemplaza estas dos líneas (cerca de la línea 230):</p>
+      <pre style="background:#000;padding:12px;border-radius:8px;overflow:auto;color:#facc15;">const SUPABASE_URL  = "https://TU_PROYECTO.supabase.co";
+const SUPABASE_ANON = "eyJhbGc...";</pre>
+      <p>Las consigues en <strong>supabase.com → Tu proyecto → Settings → API</strong>.</p>
+      <p>Lee el archivo <strong>INSTRUCCIONES.md</strong> para la guía completa paso a paso.</p>
+    </div>
+  `;
+}
+
+function renderLogin() {
+  document.getElementById("app").innerHTML = `
+    <div class="card" style="max-width:420px;margin:40px auto;">
+      <h1 style="text-align:center;">⚽ Mundial 2026</h1>
+      <p style="text-align:center;">Pronostica los 72 partidos de la fase de grupos. Gana puntos por cada acierto.</p>
+      <div class="form-row">
+        <div>
+          <label for="loginName">Tu nombre</label>
+          <input type="text" id="loginName" placeholder="Ej: Jorge" autocomplete="username" />
+        </div>
+        <div>
+          <label for="loginPass">Contraseña</label>
+          <input type="password" id="loginPass" placeholder="••••••" autocomplete="current-password" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Entrar / Crear cuenta</button>
+      <p class="small center" style="margin-top:12px;">
+        🥇 Marcador exacto: <strong>3 pts</strong><br/>
+        🎯 Solo ganador: <strong>1 pt</strong>
+      </p>
+    </div>
+  `;
+  // Enter para enviar
+  document.getElementById("loginPass").addEventListener("keydown", e => {
+    if (e.key === "Enter") doLogin();
+  });
+}
+
+function doLogin() {
+  const name = document.getElementById("loginName").value;
+  const pass = document.getElementById("loginPass").value;
+  login(name, pass);
+}
+
+function renderPredict() {
+  const matches = MATCHES.filter(m => m.group === state.activeGroup);
+  const groupTabs = Object.keys(GROUPS).map(g =>
+    `<button class="${g===state.activeGroup?'active':''}" onclick="setGroup('${g}')">Grupo ${g}</button>`
+  ).join("");
+
+  const matchesHtml = matches.map(m => {
+    const p = state.predictions[m.id] || { home: "", away: "" };
+    const r = state.results[m.id];
+    const pts = r ? calcPoints(p, r) : null;
+    let badge = "";
+    if (r) {
+      const cls = pts === 3 ? "points-3" : pts === 1 ? "points-1" : "points-0";
+      const label = pts === 3 ? "🎯 Exacto +3" : pts === 1 ? "✓ Ganador +1" : "✗ Sin acierto";
+      badge = `<div class="match-points ${cls}">Resultado real: ${r.home}-${r.away} · ${label}</div>`;
+    }
+    return `
+      <div class="match-row">
+        <div class="match-team">
+          <span class="flag">${flag(m.home)}</span>
+          <span>${m.home}</span>
+        </div>
+        <div class="match-scores">
+          <input type="number" min="0" value="${p.home}" id="ph_${m.id}"
+            onchange="onPredChange('${m.id}','home',this.value)" />
+          <span>-</span>
+          <input type="number" min="0" value="${p.away}" id="pa_${m.id}"
+            onchange="onPredChange('${m.id}','away',this.value)" />
+        </div>
+        <div class="match-team away">
+          <span>${m.away}</span>
+          <span class="flag">${flag(m.away)}</span>
+        </div>
+        <div class="match-meta">📅 ${m.date} · 🏟️ ${m.stadium}</div>
+        ${badge}
+      </div>
+    `;
+  }).join("");
+
+  // Conteo de predicciones
+  const totalPreds = Object.keys(state.predictions).filter(k => {
+    const p = state.predictions[k];
+    return p.home !== "" && p.away !== "" && p.home != null && p.away != null;
+  }).length;
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>🎯 Mis Predicciones</h2>
+      <p class="small">Llena los marcadores. Se guarda automático al cambiar de campo. ${totalPreds}/72 partidos predichos.</p>
+      <div class="group-tabs">${groupTabs}</div>
+      <h3>Grupo ${state.activeGroup}</h3>
+      ${matchesHtml}
+    </div>
+  `;
+}
+
+function setGroup(g) { state.activeGroup = g; renderPredict(); }
+
+window.onPredChange = async function(matchId, side, val) {
+  setPredField(matchId, side, val);
+  await savePrediction(matchId);
+};
+
+function renderBoard() {
+  const board = getLeaderboard();
+  const totalResults = Object.keys(state.results).length;
+  const rows = board.map((row, i) => {
+    const rank = i + 1;
+    const rankCls = rank === 1 ? "gold" : rank === 2 ? "silver" : rank === 3 ? "bronze" : "";
+    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
+    const isMe = row.name === state.user.name ? "background:rgba(250,204,21,0.08);" : "";
+    return `
+      <tr style="${isMe}">
+        <td class="rank ${rankCls}">${medal}</td>
+        <td>${row.name}${row.name===state.user.name?' <span class="badge">tú</span>':''}</td>
+        <td style="text-align:right;font-weight:700;color:#facc15;">${row.pts}</td>
+      </tr>
+    `;
+  }).join("") || `<tr><td colspan="3" class="center small">Aún no hay usuarios registrados.</td></tr>`;
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>🏆 Tabla de posiciones</h2>
+      <p class="small">${totalResults}/72 partidos con resultado oficial · ${state.allUsers.length} participantes</p>
+      <table class="leaderboard">
+        <thead>
+          <tr><th>#</th><th>Participante</th><th style="text-align:right;">Puntos</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderAdmin() {
+  if (!state.adminUnlocked) {
+    document.getElementById("app").innerHTML = `
+      <div class="card" style="max-width:420px;margin:40px auto;">
+        <h2>⚙️ Panel Admin</h2>
+        <p>Ingresa la contraseña de admin para cargar los resultados oficiales de los partidos.</p>
+        <div class="form-row">
+          <div>
+            <label>Contraseña de admin</label>
+            <input type="password" id="adminPw" placeholder="••••••" />
+          </div>
+        </div>
+        <button class="btn-primary" onclick="unlockAdmin()">Desbloquear</button>
+      </div>
+    `;
+    document.getElementById("adminPw").addEventListener("keydown", e => {
+      if (e.key === "Enter") unlockAdmin();
+    });
+    return;
+  }
+
+  const matches = MATCHES.filter(m => m.group === state.activeGroup);
+  const groupTabs = Object.keys(GROUPS).map(g =>
+    `<button class="${g===state.activeGroup?'active':''}" onclick="setGroup('${g}')">Grupo ${g}</button>`
+  ).join("");
+
+  const rows = matches.map(m => {
+    const r = state.results[m.id] || { home: "", away: "" };
+    return `
+      <div class="match-row">
+        <div class="match-team">
+          <span class="flag">${flag(m.home)}</span><span>${m.home}</span>
+        </div>
+        <div class="match-scores">
+          <input type="number" min="0" value="${r.home}" id="rh_${m.id}" />
+          <span>-</span>
+          <input type="number" min="0" value="${r.away}" id="ra_${m.id}" />
+        </div>
+        <div class="match-team away">
+          <span>${m.away}</span><span class="flag">${flag(m.away)}</span>
+        </div>
+        <div class="match-meta">
+          📅 ${m.date} · 🏟️ ${m.stadium}
+          <button class="btn-secondary" style="margin-left:8px;padding:4px 12px;"
+            onclick="onSaveResult('${m.id}')">💾 Guardar</button>
+          ${state.results[m.id] ? `<button class="btn-secondary" style="margin-left:6px;padding:4px 12px;background:#7f1d1d;border-color:#991b1b;" onclick="clearResult('${m.id}')">🗑️</button>` : ''}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>⚙️ Admin · Cargar resultados oficiales</h2>
+      <p class="small">Selecciona el grupo y guarda los marcadores reales. Los puntos se calculan automático.</p>
+      <div class="group-tabs">${groupTabs}</div>
+      <h3>Grupo ${state.activeGroup}</h3>
+      ${rows}
+    </div>
+  `;
+}
+
+function unlockAdmin() {
+  const pw = document.getElementById("adminPw").value;
+  if (pw === ADMIN_PASSWORD) {
+    state.adminUnlocked = true;
+    toast("🔓 Admin desbloqueado");
+    renderAdmin();
+  } else {
+    toast("Contraseña incorrecta", "error");
+  }
+}
+
+window.onSaveResult = function(matchId) {
+  const h = document.getElementById("rh_" + matchId).value;
+  const a = document.getElementById("ra_" + matchId).value;
+  if (h === "" || a === "") return toast("Llena ambos marcadores", "error");
+  saveResult(matchId, h, a);
+};
+
+window.go = go;
+window.logout = logout;
+window.doLogin = doLogin;
+window.setGroup = setGroup;
+window.unlockAdmin = unlockAdmin;
+window.clearResult = clearResult;
+
+// =====================================================================
+//  Boot
+// =====================================================================
+async function boot() {
+  initSupabase();
+  if (state.configError) return render();
+  const saved = localStorage.getItem("mundial26_user");
+  if (saved) {
+    try {
+      state.user = JSON.parse(saved);
+      await loadAll();
+      state.view = "predict";
+    } catch (e) { state.user = null; }
+  }
+  render();
+}
+
+boot();
+</script>
+</body>
+</html>
