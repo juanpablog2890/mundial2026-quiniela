@@ -587,15 +587,24 @@ function getLeaderboard() {
 function render() {
   renderNav();
   if (state.configError) return renderConfigError();
+  // El admin puede acceder sin tener usuario propio
+  if (state.view === "admin") return renderAdmin();
   if (!state.user) return renderLogin();
   if (state.view === "predict") return renderPredict();
   if (state.view === "board") return renderBoard();
-  if (state.view === "admin") return renderAdmin();
 }
 
 function renderNav() {
   const nav = document.getElementById("nav");
-  if (!state.user) { nav.innerHTML = ""; return; }
+  if (!state.user) {
+    // Si está en admin sin usuario, dar opción de volver al login
+    if (state.view === "admin") {
+      nav.innerHTML = `<button onclick="exitAdmin()">⬅️ Volver al login</button>`;
+    } else {
+      nav.innerHTML = "";
+    }
+    return;
+  }
   nav.innerHTML = `
     <button class="${state.view==='predict'?'active':''}" onclick="go('predict')">🎯 Mis Picks</button>
     <button class="${state.view==='board'?'active':''}" onclick="go('board')">🏆 Tabla</button>
@@ -642,6 +651,9 @@ function renderLogin() {
         🥇 Marcador exacto: <strong>3 pts</strong> · 🎯 Solo ganador: <strong>1 pt</strong><br/>
         <span style="opacity:.7;">Si no tienes cuenta, pídesela al admin.</span>
       </p>
+      <div style="text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
+        <button class="btn-secondary" onclick="go('admin')" style="font-size:13px;">⚙️ Acceso Admin</button>
+      </div>
     </div>
   `;
   // Enter para enviar
@@ -1021,12 +1033,19 @@ window.onSaveResult = function(matchId) {
   saveResult(matchId, h, a);
 };
 
+function exitAdmin() {
+  state.adminUnlocked = false;
+  state.view = "login";
+  render();
+}
+
 window.go = go;
 window.logout = logout;
 window.doLogin = doLogin;
 window.setGroup = setGroup;
 window.unlockAdmin = unlockAdmin;
 window.clearResult = clearResult;
+window.exitAdmin = exitAdmin;
 
 // =====================================================================
 //  Boot
