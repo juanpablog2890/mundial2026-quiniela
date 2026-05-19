@@ -389,6 +389,8 @@ const state = {
   allPredictions: [],    // [{ user_name, match_id, home_score, away_score }]
   activeGroup: "A",
   adminUnlocked: false,
+  adminTab: "results",        // results | users | lock
+  predictionsLocked: false,   // si true, los usuarios no pueden cambiar predicciones
   configError: false,
   sb: null,
 };
@@ -446,10 +448,11 @@ function toast(msg, type = "ok") {
 async function loadAll() {
   if (!state.sb) return;
   try {
-    const [users, preds, res] = await Promise.all([
+    const [users, preds, res, settings] = await Promise.all([
       state.sb.from("users").select("name"),
       state.sb.from("predictions").select("*"),
       state.sb.from("results").select("*"),
+      state.sb.from("settings").select("*"),
     ]);
     state.allUsers = users.data || [];
     state.allPredictions = preds.data || [];
@@ -457,6 +460,10 @@ async function loadAll() {
     (res.data || []).forEach(r => {
       state.results[r.match_id] = { home: r.home_score, away: r.away_score };
     });
+    // Estado del bloqueo de predicciones
+    const settingsMap = {};
+    (settings.data || []).forEach(s => { settingsMap[s.key] = s.value; });
+    state.predictionsLocked = settingsMap.predictions_locked === "1";
     if (state.user) {
       state.predictions = {};
       state.allPredictions
@@ -479,18 +486,16 @@ async function login(name, password) {
   if (!name || !password) return toast("Completa nombre y contraseña", "error");
   const hash = await hashPass(password);
   const { data: existing } = await state.sb.from("users").select("*").eq("name", name).maybeSingle();
-  if (existing) {
-    if (existing.pass_hash !== hash) return toast("Contraseña incorrecta", "error");
-  } else {
-    const { error } = await state.sb.from("users").insert({ name, pass_hash: hash });
-    if (error) return toast("No se pudo crear el usuario: " + error.message, "error");
-    toast("¡Bienvenido " + name + "!");
+  if (!existing) {
+    return toast("Usuario no encontrado. Pídele al admin que te cree una cuenta.", "error");
   }
+  if (existing.pass_hash !== hash) return toast("Contraseña incorrecta", "error");
   state.user = { name };
   localStorage.setItem("mundial26_user", JSON.stringify(state.user));
   await loadAll();
   state.view = "predict";
   render();
+  toast("¡Bienvenido " + name + "!");
 }
 
 function logout() {
@@ -506,6 +511,10 @@ function logout() {
 //  Guardar predicción de un partido
 // =====================================================================
 async function savePrediction(matchId) {
+  if (state.predictionsLocked) {
+    toast("🔒 Las predicciones están cerradas", "error");
+    return;
+  }
   const p = state.predictions[matchId];
   if (!p || p.home === "" || p.away === "" || p.home == null || p.away == null) return;
   const h = parseInt(p.home), a = parseInt(p.away);
@@ -617,21 +626,21 @@ function renderLogin() {
   document.getElementById("app").innerHTML = `
     <div class="card" style="max-width:420px;margin:40px auto;">
       <h1 style="text-align:center;">⚽ Mundial 2026</h1>
-      <p style="text-align:center;">Pronostica los 72 partidos de la fase de grupos. Gana puntos por cada acierto.</p>
+      <p style="text-align:center;">Pronostica los 72 partidos de la fase de grupos.</p>
       <div class="form-row">
         <div>
           <label for="loginName">Tu nombre</label>
-          <input type="text" id="loginName" placeholder="Ej: Jorge" autocomplete="username" />
+          <input type="text" id="loginName" placeholder="Tu nombre" autocomplete="username" />
         </div>
         <div>
           <label for="loginPass">Contraseña</label>
           <input type="password" id="loginPass" placeholder="••••••" autocomplete="current-password" />
         </div>
       </div>
-      <button class="btn-primary" onclick="doLogin()">Entrar / Crear cuenta</button>
+      <button class="btn-primary" onclick="doLogin()">Entrar</button>
       <p class="small center" style="margin-top:12px;">
-        🥇 Marcador exacto: <strong>3 pts</strong><br/>
-        🎯 Solo ganador: <strong>1 pt</strong>
+        🥇 Marcador exacto: <strong>3 pts</strong> · 🎯 Solo ganador: <strong>1 pt</strong><br/>
+        <span style="opacity:.7;">Si no tienes cuenta, pídesela al admin.</span>
       </p>
     </div>
   `;
@@ -653,6 +662,7 @@ function renderPredict() {
     `<button class="${g===state.activeGroup?'active':''}" onclick="setGroup('${g}')">Grupo ${g}</button>`
   ).join("");
 
+  const locked = state.predictionsLocked;
   const matchesHtml = matches.map(m => {
     const p = state.predictions[m.id] || { home: "", away: "" };
     const r = state.results[m.id];
@@ -663,6 +673,7 @@ function renderPredict() {
       const label = pts === 3 ? "🎯 Exacto +3" : pts === 1 ? "✓ Ganador +1" : "✗ Sin acierto";
       badge = `<div class="match-points ${cls}">Resultado real: ${r.home}-${r.away} · ${label}</div>`;
     }
+    const disabled = locked ? "disabled" : "";
     return `
       <div class="match-row">
         <div class="match-team">
@@ -670,10 +681,10 @@ function renderPredict() {
           <span>${m.home}</span>
         </div>
         <div class="match-scores">
-          <input type="number" min="0" value="${p.home}" id="ph_${m.id}"
+          <input type="number" min="0" value="${p.home}" id="ph_${m.id}" ${disabled}
             onchange="onPredChange('${m.id}','home',this.value)" />
           <span>-</span>
-          <input type="number" min="0" value="${p.away}" id="pa_${m.id}"
+          <input type="number" min="0" value="${p.away}" id="pa_${m.id}" ${disabled}
             onchange="onPredChange('${m.id}','away',this.value)" />
         </div>
         <div class="match-team away">
@@ -692,10 +703,16 @@ function renderPredict() {
     return p.home !== "" && p.away !== "" && p.home != null && p.away != null;
   }).length;
 
+  const lockBanner = locked ? `
+    <div style="background:rgba(220,38,38,0.15);border:2px solid #dc2626;color:#fca5a5;padding:14px 16px;border-radius:8px;margin-bottom:16px;font-weight:600;text-align:center;">
+      🔒 Las predicciones están CERRADAS. Ya no puedes modificar tus picks.
+    </div>` : "";
+
   document.getElementById("app").innerHTML = `
     <div class="card">
       <h2>🎯 Mis Predicciones</h2>
-      <p class="small">Llena los marcadores. Se guarda automático al cambiar de campo. ${totalPreds}/72 partidos predichos.</p>
+      ${lockBanner}
+      <p class="small">${locked ? 'Tus picks están congelados. Mira la tabla para ver tu progreso.' : 'Llena los marcadores. Se guarda automático al cambiar de campo.'} ${totalPreds}/72 partidos predichos.</p>
       <div class="group-tabs">${groupTabs}</div>
       <h3>Grupo ${state.activeGroup}</h3>
       ${matchesHtml}
@@ -762,6 +779,21 @@ function renderAdmin() {
     return;
   }
 
+  // Sub-tabs del panel admin
+  const subTabs = `
+    <div class="group-tabs" style="margin-bottom:20px;">
+      <button class="${state.adminTab==='results'?'active':''}" onclick="setAdminTab('results')">📊 Resultados</button>
+      <button class="${state.adminTab==='users'?'active':''}" onclick="setAdminTab('users')">👥 Usuarios</button>
+      <button class="${state.adminTab==='lock'?'active':''}" onclick="setAdminTab('lock')">${state.predictionsLocked ? '🔒' : '🔓'} Bloqueo</button>
+    </div>
+  `;
+
+  if (state.adminTab === "users") return renderAdminUsers(subTabs);
+  if (state.adminTab === "lock") return renderAdminLock(subTabs);
+  return renderAdminResults(subTabs);
+}
+
+function renderAdminResults(subTabs) {
   const matches = MATCHES.filter(m => m.group === state.activeGroup);
   const groupTabs = Object.keys(GROUPS).map(g =>
     `<button class="${g===state.activeGroup?'active':''}" onclick="setGroup('${g}')">Grupo ${g}</button>`
@@ -794,7 +826,9 @@ function renderAdmin() {
 
   document.getElementById("app").innerHTML = `
     <div class="card">
-      <h2>⚙️ Admin · Cargar resultados oficiales</h2>
+      <h2>⚙️ Admin</h2>
+      ${subTabs}
+      <h3>📊 Cargar resultados oficiales</h3>
       <p class="small">Selecciona el grupo y guarda los marcadores reales. Los puntos se calculan automático.</p>
       <div class="group-tabs">${groupTabs}</div>
       <h3>Grupo ${state.activeGroup}</h3>
@@ -802,6 +836,172 @@ function renderAdmin() {
     </div>
   `;
 }
+
+function renderAdminUsers(subTabs) {
+  // Calcular cuántas predicciones tiene cada usuario y sus puntos
+  const stats = {};
+  state.allUsers.forEach(u => {
+    stats[u.name] = { preds: 0, pts: 0 };
+  });
+  state.allPredictions.forEach(p => {
+    if (!stats[p.user_name]) stats[p.user_name] = { preds: 0, pts: 0 };
+    stats[p.user_name].preds++;
+    const r = state.results[p.match_id];
+    if (r) {
+      const pts = calcPoints({ home: p.home_score, away: p.away_score }, r);
+      if (pts) stats[p.user_name].pts += pts;
+    }
+  });
+
+  const usersHtml = state.allUsers.length === 0
+    ? `<p class="small center">No hay usuarios registrados aún.</p>`
+    : state.allUsers
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(u => {
+          const s = stats[u.name] || { preds: 0, pts: 0 };
+          return `
+            <div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:14px;margin-bottom:10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                <div>
+                  <div style="font-weight:700;font-size:16px;">${u.name}</div>
+                  <div class="small">${s.preds}/72 predicciones · ${s.pts} pts</div>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button class="btn-secondary" style="padding:6px 12px;font-size:13px;"
+                    onclick="onResetPassword('${u.name.replace(/'/g, "\\'")}')">🔑 Reset clave</button>
+                  <button class="btn-secondary" style="padding:6px 12px;font-size:13px;background:#7f1d1d;border-color:#991b1b;"
+                    onclick="onDeleteUser('${u.name.replace(/'/g, "\\'")}')">🗑️ Eliminar</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>⚙️ Admin</h2>
+      ${subTabs}
+
+      <h3>➕ Crear nuevo usuario</h3>
+      <p class="small">Solo tú puedes crear participantes. Asígnale a cada uno su nombre y una contraseña — luego comparte ambos.</p>
+      <div style="background:rgba(0,0,0,0.3);padding:16px;border-radius:8px;margin-bottom:24px;">
+        <div class="form-row two">
+          <div>
+            <label>Nombre del participante</label>
+            <input type="text" id="newUserName" placeholder="Ej: Carlos" />
+          </div>
+          <div>
+            <label>Contraseña que le asignas</label>
+            <input type="text" id="newUserPass" placeholder="Ej: carlos123" />
+          </div>
+        </div>
+        <button class="btn-primary" onclick="onCreateUser()">Crear usuario</button>
+      </div>
+
+      <h3>👥 Usuarios registrados (${state.allUsers.length})</h3>
+      <p class="small">Por seguridad las contraseñas están encriptadas y NO se pueden ver. Pero puedes <strong>resetearlas</strong> (asignar una nueva) o <strong>eliminar</strong> usuarios.</p>
+      <div style="margin-top:16px;">${usersHtml}</div>
+      <button class="btn-secondary" style="margin-top:12px;" onclick="refreshUsers()">🔄 Refrescar</button>
+    </div>
+  `;
+}
+
+function renderAdminLock(subTabs) {
+  const locked = state.predictionsLocked;
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>⚙️ Admin</h2>
+      ${subTabs}
+      <h3>${locked ? '🔒' : '🔓'} Bloqueo de predicciones</h3>
+      <p>Cuando el bloqueo está <strong>activado</strong>, los participantes ya NO pueden modificar sus picks. Úsalo cuando empiece el Mundial para que nadie haga trampa viendo cómo van los partidos.</p>
+      <div style="background:rgba(0,0,0,0.3);padding:24px;border-radius:8px;margin-top:20px;text-align:center;">
+        <div style="font-size:64px;margin-bottom:8px;">${locked ? '🔒' : '🔓'}</div>
+        <div style="font-weight:800;font-size:20px;color:${locked ? '#f87171' : '#4ade80'};margin-bottom:6px;">
+          Predicciones ${locked ? 'BLOQUEADAS' : 'ABIERTAS'}
+        </div>
+        <p class="small" style="margin-bottom:20px;">
+          ${locked
+            ? 'Nadie puede modificar sus predicciones ahora. Las picks quedaron congeladas para la quiniela.'
+            : 'Los participantes pueden editar libremente sus predicciones.'}
+        </p>
+        <button class="btn-primary" onclick="onToggleLock()" style="background:${locked ? '#4ade80' : '#f87171'};color:#0f172a;">
+          ${locked ? '🔓 ABRIR predicciones' : '🔒 CERRAR predicciones'}
+        </button>
+      </div>
+      <p class="small" style="margin-top:16px;opacity:.7;">
+        Recomendación: ciérralas justo antes del primer partido (Jueves 11 Junio) y déjalas bloqueadas hasta el final.
+      </p>
+    </div>
+  `;
+}
+
+function setAdminTab(t) { state.adminTab = t; renderAdmin(); }
+
+async function refreshUsers() {
+  await loadAll();
+  renderAdmin();
+  toast("Lista actualizada");
+}
+
+async function deleteUser(name) {
+  if (!confirm(`¿Seguro que quieres ELIMINAR al usuario "${name}"?\n\nEsto borra también todas sus predicciones. NO se puede deshacer.`)) return;
+  const { error } = await state.sb.from("users").delete().eq("name", name);
+  if (error) return toast("Error: " + error.message, "error");
+  toast(`🗑️ Usuario "${name}" eliminado`);
+  await loadAll();
+  renderAdmin();
+}
+
+async function resetPassword(name) {
+  const newPw = prompt(`Asigna una nueva contraseña para "${name}":\n\n(El usuario deberá usar esta nueva contraseña la próxima vez que entre.)`);
+  if (!newPw || newPw.trim().length < 1) return;
+  const hash = await hashPass(newPw.trim());
+  const { error } = await state.sb.from("users").update({ pass_hash: hash }).eq("name", name);
+  if (error) return toast("Error: " + error.message, "error");
+  toast(`🔑 Contraseña de "${name}" reseteada a: ${newPw.trim()}`);
+}
+
+async function createUser() {
+  const name = (document.getElementById("newUserName").value || "").trim();
+  const pass = (document.getElementById("newUserPass").value || "").trim();
+  if (!name || !pass) return toast("Completa nombre y contraseña", "error");
+  if (pass.length < 3) return toast("Contraseña muy corta (mínimo 3 caracteres)", "error");
+  // Verificar si ya existe
+  const { data: existing } = await state.sb.from("users").select("name").eq("name", name).maybeSingle();
+  if (existing) return toast(`Ya existe un usuario con el nombre "${name}"`, "error");
+  const hash = await hashPass(pass);
+  const { error } = await state.sb.from("users").insert({ name, pass_hash: hash });
+  if (error) return toast("Error: " + error.message, "error");
+  toast(`✅ Usuario "${name}" creado con contraseña: ${pass}`);
+  document.getElementById("newUserName").value = "";
+  document.getElementById("newUserPass").value = "";
+  await loadAll();
+  renderAdmin();
+}
+
+async function toggleLock() {
+  const newState = !state.predictionsLocked;
+  const confirmMsg = newState
+    ? "¿CERRAR las predicciones? Después de cerrarlas, los participantes ya no podrán modificar sus picks."
+    : "¿ABRIR de nuevo las predicciones? Los participantes podrán editar libremente.";
+  if (!confirm(confirmMsg)) return;
+  const { error } = await state.sb.from("settings").upsert({
+    key: "predictions_locked",
+    value: newState ? "1" : "0",
+  });
+  if (error) return toast("Error: " + error.message, "error");
+  state.predictionsLocked = newState;
+  toast(newState ? "🔒 Predicciones bloqueadas" : "🔓 Predicciones abiertas");
+  renderAdmin();
+}
+
+window.onDeleteUser = deleteUser;
+window.onResetPassword = resetPassword;
+window.onCreateUser = createUser;
+window.onToggleLock = toggleLock;
+window.setAdminTab = setAdminTab;
+window.refreshUsers = refreshUsers;
 
 function unlockAdmin() {
   const pw = document.getElementById("adminPw").value;
