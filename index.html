@@ -274,7 +274,7 @@ const SCORING = { EXACT: 3, WINNER: 1 };
 
 const GROUPS = {
   A: ["México", "Sudáfrica", "Rep. de Corea", "Chequia"],
-  B: ["Canadá", "Qatar", "Suiza", "Bosnia y Herz."],
+  B: ["Canadá", "Catar", "Suiza", "Bosnia y Herz."],
   C: ["Brasil", "Marruecos", "Escocia", "Haití"],
   D: ["EE.UU.", "Paraguay", "Australia", "Turquía"],
   E: ["Alemania", "Ecuador", "Costa de Marfil", "Curazao"],
@@ -288,83 +288,95 @@ const GROUPS = {
 };
 
 const MATCHES = [
-  {id:"p01",group:"A",home:"México",away:"Sudáfrica",date:"Jue 11 Jun",stadium:"Ciudad de México"},
-  {id:"p02",group:"A",home:"Rep. de Corea",away:"Chequia",date:"Vie 12 Jun",stadium:"Toronto"},
-  {id:"p03",group:"A",home:"México",away:"Chequia",date:"Jue 18 Jun",stadium:"Guadalajara"},
-  {id:"p04",group:"A",home:"Sudáfrica",away:"Rep. de Corea",date:"Jue 18 Jun",stadium:"BC Place Vancouver"},
-  {id:"p05",group:"A",home:"Sudáfrica",away:"Chequia",date:"Mié 24 Jun",stadium:"Monterrey"},
-  {id:"p06",group:"A",home:"México",away:"Rep. de Corea",date:"Mié 24 Jun",stadium:"Ciudad de México"},
-  {id:"p07",group:"B",home:"Canadá",away:"Bosnia y Herz.",date:"Vie 12 Jun",stadium:"Los Ángeles"},
-  {id:"p08",group:"B",home:"Qatar",away:"Suiza",date:"Sáb 13 Jun",stadium:"Bahía de SF"},
-  {id:"p09",group:"B",home:"Canadá",away:"Qatar",date:"Jue 18 Jun",stadium:"Los Ángeles"},
-  {id:"p10",group:"B",home:"Bosnia y Herz.",away:"Suiza",date:"Vie 19 Jun",stadium:"Gillette"},
-  {id:"p11",group:"B",home:"Suiza",away:"Bosnia y Herz.",date:"Mié 24 Jun",stadium:"Seattle"},
-  {id:"p12",group:"B",home:"Qatar",away:"Canadá",date:"Mié 24 Jun",stadium:"BC Place Vancouver"},
-  {id:"p13",group:"C",home:"Brasil",away:"Marruecos",date:"Sáb 13 Jun",stadium:"Nueva York/NJ"},
-  {id:"p14",group:"C",home:"Escocia",away:"Haití",date:"Sáb 13 Jun",stadium:"Gillette"},
-  {id:"p15",group:"C",home:"Brasil",away:"Haití",date:"Vie 19 Jun",stadium:"Filadelfia"},
-  {id:"p16",group:"C",home:"Escocia",away:"Marruecos",date:"Vie 19 Jun",stadium:"Gillette"},
-  {id:"p17",group:"C",home:"Marruecos",away:"Haití",date:"Jue 25 Jun",stadium:"Bahía de SF"},
-  {id:"p18",group:"C",home:"Brasil",away:"Escocia",date:"Jue 25 Jun",stadium:"Los Ángeles"},
-  {id:"p19",group:"D",home:"EE.UU.",away:"Paraguay",date:"Dom 14 Jun",stadium:"Houston"},
-  {id:"p20",group:"D",home:"Australia",away:"Turquía",date:"Dom 14 Jun",stadium:"Filadelfia"},
-  {id:"p21",group:"D",home:"EE.UU.",away:"Turquía",date:"Sáb 20 Jun",stadium:"Toronto"},
-  {id:"p22",group:"D",home:"Paraguay",away:"Australia",date:"Sáb 20 Jun",stadium:"Kansas City"},
-  {id:"p23",group:"D",home:"Turquía",away:"Paraguay",date:"Jue 25 Jun",stadium:"Filadelfia"},
-  {id:"p24",group:"D",home:"Australia",away:"EE.UU.",date:"Jue 25 Jun",stadium:"Nueva York/NJ"},
-  {id:"p25",group:"E",home:"Alemania",away:"Ecuador",date:"Dom 14 Jun",stadium:"Dallas"},
-  {id:"p26",group:"E",home:"Costa de Marfil",away:"Curazao",date:"Dom 14 Jun",stadium:"Monterrey"},
-  {id:"p27",group:"E",home:"Alemania",away:"Costa de Marfil",date:"Sáb 20 Jun",stadium:"Houston"},
-  {id:"p28",group:"E",home:"Ecuador",away:"Curazao",date:"Sáb 20 Jun",stadium:"Monterrey"},
-  {id:"p29",group:"E",home:"Curazao",away:"Alemania",date:"Jue 25 Jun",stadium:"Dallas"},
-  {id:"p30",group:"E",home:"Ecuador",away:"Costa de Marfil",date:"Jue 25 Jun",stadium:"Kansas City"},
-  {id:"p31",group:"F",home:"Países Bajos",away:"Japón",date:"Lun 15 Jun",stadium:"Seattle"},
-  {id:"p32",group:"F",home:"Túnez",away:"Suecia",date:"Lun 15 Jun",stadium:"Atlanta"},
-  {id:"p33",group:"F",home:"Países Bajos",away:"Túnez",date:"Dom 21 Jun",stadium:"Los Ángeles"},
-  {id:"p34",group:"F",home:"Japón",away:"Suecia",date:"Dom 21 Jun",stadium:"BC Place Vancouver"},
-  {id:"p35",group:"F",home:"Suecia",away:"Países Bajos",date:"Sáb 27 Jun",stadium:"BC Place Vancouver"},
-  {id:"p36",group:"F",home:"Japón",away:"Túnez",date:"Sáb 27 Jun",stadium:"Seattle"},
-  {id:"p37",group:"G",home:"Bélgica",away:"Irán",date:"Lun 15 Jun",stadium:"Los Ángeles"},
-  {id:"p38",group:"G",home:"Egipto",away:"Nueva Zelanda",date:"Lun 15 Jun",stadium:"Miami"},
-  {id:"p39",group:"G",home:"Bélgica",away:"Egipto",date:"Dom 21 Jun",stadium:"Atlanta"},
-  {id:"p40",group:"G",home:"Nueva Zelanda",away:"Irán",date:"Dom 21 Jun",stadium:"Miami"},
-  {id:"p41",group:"G",home:"Irán",away:"Bélgica",date:"Vie 26 Jun",stadium:"Houston"},
-  {id:"p42",group:"G",home:"Nueva Zelanda",away:"Egipto",date:"Vie 26 Jun",stadium:"Guadalajara"},
-  {id:"p43",group:"H",home:"España",away:"Uruguay",date:"Mar 16 Jun",stadium:"Nueva York/NJ"},
-  {id:"p44",group:"H",home:"Arabia Saudí",away:"Cabo Verde",date:"Mar 16 Jun",stadium:"Boston"},
-  {id:"p45",group:"H",home:"España",away:"Arabia Saudí",date:"Lun 22 Jun",stadium:"Filadelfia"},
-  {id:"p46",group:"H",home:"Uruguay",away:"Cabo Verde",date:"Lun 22 Jun",stadium:"Nueva York/NJ"},
-  {id:"p47",group:"H",home:"Cabo Verde",away:"España",date:"Vie 26 Jun",stadium:"Toronto"},
-  {id:"p48",group:"H",home:"Uruguay",away:"Arabia Saudí",date:"Vie 26 Jun",stadium:"Boston"},
-  {id:"p49",group:"I",home:"Francia",away:"Senegal",date:"Mar 16 Jun",stadium:"Kansas City"},
-  {id:"p50",group:"I",home:"Noruega",away:"Irak",date:"Mié 17 Jun",stadium:"Houston"},
-  {id:"p51",group:"I",home:"Francia",away:"Noruega",date:"Lun 22 Jun",stadium:"Dallas"},
-  {id:"p52",group:"I",home:"Irak",away:"Senegal",date:"Mar 23 Jun",stadium:"Houston"},
-  {id:"p53",group:"I",home:"Senegal",away:"Noruega",date:"Sáb 27 Jun",stadium:"Atlanta"},
-  {id:"p54",group:"I",home:"Irak",away:"Francia",date:"Sáb 27 Jun",stadium:"Kansas City"},
-  {id:"p55",group:"J",home:"Argentina",away:"Argelia",date:"Mar 16 Jun",stadium:"Bahía de SF"},
-  {id:"p56",group:"J",home:"Austria",away:"Jordania",date:"Mié 17 Jun",stadium:"Ciudad de México"},
-  {id:"p57",group:"J",home:"Argentina",away:"Austria",date:"Lun 22 Jun",stadium:"Bahía de SF"},
-  {id:"p58",group:"J",home:"Jordania",away:"Argelia",date:"Mar 23 Jun",stadium:"Guadalajara"},
-  {id:"p59",group:"J",home:"Argelia",away:"Austria",date:"Sáb 27 Jun",stadium:"Dallas"},
-  {id:"p60",group:"J",home:"Jordania",away:"Argentina",date:"Sáb 27 Jun",stadium:"Miami"},
-  {id:"p61",group:"K",home:"Portugal",away:"RD del Congo",date:"Mié 17 Jun",stadium:"Dallas"},
-  {id:"p62",group:"K",home:"Colombia",away:"Uzbekistán",date:"Mié 17 Jun",stadium:"Toronto"},
-  {id:"p63",group:"K",home:"Portugal",away:"Colombia",date:"Mar 23 Jun",stadium:"Boston"},
-  {id:"p64",group:"K",home:"Uzbekistán",away:"RD del Congo",date:"Mar 23 Jun",stadium:"Toronto"},
-  {id:"p65",group:"K",home:"RD del Congo",away:"Colombia",date:"Sáb 27 Jun",stadium:"Filadelfia"},
-  {id:"p66",group:"K",home:"Uzbekistán",away:"Portugal",date:"Sáb 27 Jun",stadium:"Nueva York/NJ"},
-  {id:"p67",group:"L",home:"Inglaterra",away:"Croacia",date:"Mié 17 Jun",stadium:"Kansas City"},
-  {id:"p68",group:"L",home:"Ghana",away:"Panamá",date:"Jue 19 Jun",stadium:"Bahía de SF"},
-  {id:"p69",group:"L",home:"Inglaterra",away:"Ghana",date:"Mar 23 Jun",stadium:"Boston"},
-  {id:"p70",group:"L",home:"Panamá",away:"Croacia",date:"Mié 17 Jun",stadium:"Toronto"},
-  {id:"p71",group:"L",home:"Croacia",away:"Ghana",date:"Sáb 27 Jun",stadium:"Dallas"},
-  {id:"p72",group:"L",home:"Panamá",away:"Inglaterra",date:"Sáb 27 Jun",stadium:"Miami"},
+  // GRUPO A
+  {id:"p01",group:"A",home:"México",away:"Sudáfrica",date:"Jue 11 Jun",time:"15:00",stadium:"Ciudad de México"},
+  {id:"p02",group:"A",home:"Rep. de Corea",away:"Chequia",date:"Jue 11 Jun",time:"22:00",stadium:"Guadalajara"},
+  {id:"p03",group:"A",home:"Chequia",away:"Sudáfrica",date:"Jue 18 Jun",time:"12:00",stadium:"Atlanta"},
+  {id:"p04",group:"A",home:"México",away:"Rep. de Corea",date:"Jue 18 Jun",time:"21:00",stadium:"Guadalajara"},
+  {id:"p05",group:"A",home:"Chequia",away:"México",date:"Mié 24 Jun",time:"21:00",stadium:"Ciudad de México"},
+  {id:"p06",group:"A",home:"Sudáfrica",away:"Rep. de Corea",date:"Mié 24 Jun",time:"21:00",stadium:"Monterrey"},
+  // GRUPO B
+  {id:"p07",group:"B",home:"Canadá",away:"Bosnia y Herz.",date:"Vie 12 Jun",time:"15:00",stadium:"Toronto"},
+  {id:"p08",group:"B",home:"Catar",away:"Suiza",date:"Sáb 13 Jun",time:"15:00",stadium:"Bahía de SF"},
+  {id:"p09",group:"B",home:"Canadá",away:"Catar",date:"Jue 18 Jun",time:"18:00",stadium:"BC Place Vancouver"},
+  {id:"p10",group:"B",home:"Suiza",away:"Bosnia y Herz.",date:"Jue 18 Jun",time:"15:00",stadium:"Los Ángeles"},
+  {id:"p11",group:"B",home:"Suiza",away:"Canadá",date:"Mié 24 Jun",time:"15:00",stadium:"BC Place Vancouver"},
+  {id:"p12",group:"B",home:"Bosnia y Herz.",away:"Catar",date:"Mié 24 Jun",time:"15:00",stadium:"Seattle"},
+  // GRUPO C
+  {id:"p13",group:"C",home:"Brasil",away:"Marruecos",date:"Sáb 13 Jun",time:"18:00",stadium:"Nueva York/NJ"},
+  {id:"p14",group:"C",home:"Haití",away:"Escocia",date:"Sáb 13 Jun",time:"21:00",stadium:"Boston"},
+  {id:"p15",group:"C",home:"Escocia",away:"Marruecos",date:"Vie 19 Jun",time:"18:00",stadium:"Boston"},
+  {id:"p16",group:"C",home:"Brasil",away:"Haití",date:"Vie 19 Jun",time:"21:00",stadium:"Filadelfia"},
+  {id:"p17",group:"C",home:"Escocia",away:"Brasil",date:"Mié 24 Jun",time:"18:00",stadium:"Miami"},
+  {id:"p18",group:"C",home:"Marruecos",away:"Haití",date:"Mié 24 Jun",time:"18:00",stadium:"Atlanta"},
+  // GRUPO D
+  {id:"p19",group:"D",home:"EE.UU.",away:"Paraguay",date:"Vie 12 Jun",time:"21:00",stadium:"Los Ángeles"},
+  {id:"p20",group:"D",home:"Australia",away:"Turquía",date:"Sáb 13 Jun",time:"00:00",stadium:"BC Place Vancouver"},
+  {id:"p21",group:"D",home:"EE.UU.",away:"Australia",date:"Vie 19 Jun",time:"15:00",stadium:"Seattle"},
+  {id:"p22",group:"D",home:"Turquía",away:"Paraguay",date:"Vie 19 Jun",time:"00:00",stadium:"Bahía de SF"},
+  {id:"p23",group:"D",home:"Turquía",away:"EE.UU.",date:"Jue 25 Jun",time:"22:00",stadium:"Los Ángeles"},
+  {id:"p24",group:"D",home:"Paraguay",away:"Australia",date:"Jue 25 Jun",time:"22:00",stadium:"Bahía de SF"},
+  // GRUPO E
+  {id:"p25",group:"E",home:"Alemania",away:"Curazao",date:"Dom 14 Jun",time:"13:00",stadium:"Houston"},
+  {id:"p26",group:"E",home:"Costa de Marfil",away:"Ecuador",date:"Dom 14 Jun",time:"19:00",stadium:"Filadelfia"},
+  {id:"p27",group:"E",home:"Alemania",away:"Costa de Marfil",date:"Sáb 20 Jun",time:"16:00",stadium:"Toronto"},
+  {id:"p28",group:"E",home:"Ecuador",away:"Curazao",date:"Sáb 20 Jun",time:"22:00",stadium:"Kansas City"},
+  {id:"p29",group:"E",home:"Curazao",away:"Costa de Marfil",date:"Jue 25 Jun",time:"16:00",stadium:"Filadelfia"},
+  {id:"p30",group:"E",home:"Ecuador",away:"Alemania",date:"Jue 25 Jun",time:"16:00",stadium:"Nueva York/NJ"},
+  // GRUPO F
+  {id:"p31",group:"F",home:"Países Bajos",away:"Japón",date:"Dom 14 Jun",time:"16:00",stadium:"Dallas"},
+  {id:"p32",group:"F",home:"Suecia",away:"Túnez",date:"Dom 14 Jun",time:"22:00",stadium:"Monterrey"},
+  {id:"p33",group:"F",home:"Países Bajos",away:"Suecia",date:"Sáb 20 Jun",time:"13:00",stadium:"Houston"},
+  {id:"p34",group:"F",home:"Túnez",away:"Japón",date:"Sáb 20 Jun",time:"00:00",stadium:"Monterrey"},
+  {id:"p35",group:"F",home:"Japón",away:"Suecia",date:"Jue 25 Jun",time:"19:00",stadium:"Dallas"},
+  {id:"p36",group:"F",home:"Túnez",away:"Países Bajos",date:"Jue 25 Jun",time:"19:00",stadium:"Kansas City"},
+  // GRUPO G
+  {id:"p37",group:"G",home:"Bélgica",away:"Egipto",date:"Lun 15 Jun",time:"15:00",stadium:"Seattle"},
+  {id:"p38",group:"G",home:"Irán",away:"Nueva Zelanda",date:"Lun 15 Jun",time:"21:00",stadium:"Los Ángeles"},
+  {id:"p39",group:"G",home:"Bélgica",away:"Irán",date:"Dom 21 Jun",time:"15:00",stadium:"Los Ángeles"},
+  {id:"p40",group:"G",home:"Nueva Zelanda",away:"Egipto",date:"Dom 21 Jun",time:"21:00",stadium:"BC Place Vancouver"},
+  {id:"p41",group:"G",home:"Egipto",away:"Irán",date:"Vie 26 Jun",time:"23:00",stadium:"Seattle"},
+  {id:"p42",group:"G",home:"Nueva Zelanda",away:"Bélgica",date:"Vie 26 Jun",time:"23:00",stadium:"BC Place Vancouver"},
+  // GRUPO H
+  {id:"p43",group:"H",home:"España",away:"Cabo Verde",date:"Lun 15 Jun",time:"12:00",stadium:"Atlanta"},
+  {id:"p44",group:"H",home:"Arabia Saudí",away:"Uruguay",date:"Lun 15 Jun",time:"18:00",stadium:"Miami"},
+  {id:"p45",group:"H",home:"España",away:"Arabia Saudí",date:"Dom 21 Jun",time:"12:00",stadium:"Atlanta"},
+  {id:"p46",group:"H",home:"Uruguay",away:"Cabo Verde",date:"Dom 21 Jun",time:"18:00",stadium:"Miami"},
+  {id:"p47",group:"H",home:"Cabo Verde",away:"Arabia Saudí",date:"Vie 26 Jun",time:"20:00",stadium:"Houston"},
+  {id:"p48",group:"H",home:"Uruguay",away:"España",date:"Vie 26 Jun",time:"20:00",stadium:"Guadalajara"},
+  // GRUPO I
+  {id:"p49",group:"I",home:"Francia",away:"Senegal",date:"Mar 16 Jun",time:"15:00",stadium:"Nueva York/NJ"},
+  {id:"p50",group:"I",home:"Irak",away:"Noruega",date:"Mar 16 Jun",time:"18:00",stadium:"Boston"},
+  {id:"p51",group:"I",home:"Francia",away:"Irak",date:"Lun 22 Jun",time:"17:00",stadium:"Filadelfia"},
+  {id:"p52",group:"I",home:"Noruega",away:"Senegal",date:"Lun 22 Jun",time:"20:00",stadium:"Nueva York/NJ"},
+  {id:"p53",group:"I",home:"Noruega",away:"Francia",date:"Vie 26 Jun",time:"15:00",stadium:"Boston"},
+  {id:"p54",group:"I",home:"Senegal",away:"Irak",date:"Vie 26 Jun",time:"15:00",stadium:"Toronto"},
+  // GRUPO J
+  {id:"p55",group:"J",home:"Argentina",away:"Argelia",date:"Mar 16 Jun",time:"21:00",stadium:"Kansas City"},
+  {id:"p56",group:"J",home:"Austria",away:"Jordania",date:"Mar 16 Jun",time:"00:00",stadium:"Bahía de SF"},
+  {id:"p57",group:"J",home:"Argentina",away:"Austria",date:"Lun 22 Jun",time:"13:00",stadium:"Dallas"},
+  {id:"p58",group:"J",home:"Jordania",away:"Argelia",date:"Lun 22 Jun",time:"23:00",stadium:"Bahía de SF"},
+  {id:"p59",group:"J",home:"Argelia",away:"Austria",date:"Sáb 27 Jun",time:"22:00",stadium:"Kansas City"},
+  {id:"p60",group:"J",home:"Jordania",away:"Argentina",date:"Sáb 27 Jun",time:"22:00",stadium:"Dallas"},
+  // GRUPO K
+  {id:"p61",group:"K",home:"Portugal",away:"RD del Congo",date:"Mié 17 Jun",time:"13:00",stadium:"Houston"},
+  {id:"p62",group:"K",home:"Uzbekistán",away:"Colombia",date:"Mié 17 Jun",time:"22:00",stadium:"Ciudad de México"},
+  {id:"p63",group:"K",home:"Portugal",away:"Uzbekistán",date:"Mar 23 Jun",time:"13:00",stadium:"Houston"},
+  {id:"p64",group:"K",home:"Colombia",away:"RD del Congo",date:"Mar 23 Jun",time:"22:00",stadium:"Guadalajara"},
+  {id:"p65",group:"K",home:"Colombia",away:"Portugal",date:"Sáb 27 Jun",time:"19:30",stadium:"Miami"},
+  {id:"p66",group:"K",home:"RD del Congo",away:"Uzbekistán",date:"Sáb 27 Jun",time:"19:30",stadium:"Atlanta"},
+  // GRUPO L
+  {id:"p67",group:"L",home:"Inglaterra",away:"Croacia",date:"Mié 17 Jun",time:"16:00",stadium:"Dallas"},
+  {id:"p68",group:"L",home:"Ghana",away:"Panamá",date:"Mié 17 Jun",time:"19:00",stadium:"Toronto"},
+  {id:"p69",group:"L",home:"Inglaterra",away:"Ghana",date:"Mar 23 Jun",time:"16:00",stadium:"Boston"},
+  {id:"p70",group:"L",home:"Panamá",away:"Croacia",date:"Mar 23 Jun",time:"19:00",stadium:"Toronto"},
+  {id:"p71",group:"L",home:"Panamá",away:"Inglaterra",date:"Sáb 27 Jun",time:"17:00",stadium:"Nueva York/NJ"},
+  {id:"p72",group:"L",home:"Croacia",away:"Ghana",date:"Sáb 27 Jun",time:"17:00",stadium:"Filadelfia"},
 ];
 
 const FLAGS = {
   "México":"🇲🇽","Sudáfrica":"🇿🇦","Rep. de Corea":"🇰🇷","Chequia":"🇨🇿",
-  "Canadá":"🇨🇦","Qatar":"🇶🇦","Suiza":"🇨🇭","Bosnia y Herz.":"🇧🇦",
+  "Canadá":"🇨🇦","Catar":"🇶🇦","Suiza":"🇨🇭","Bosnia y Herz.":"🇧🇦",
   "Brasil":"🇧🇷","Marruecos":"🇲🇦","Escocia":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","Haití":"🇭🇹",
   "EE.UU.":"🇺🇸","Paraguay":"🇵🇾","Australia":"🇦🇺","Turquía":"🇹🇷",
   "Alemania":"🇩🇪","Ecuador":"🇪🇨","Costa de Marfil":"🇨🇮","Curazao":"🇨🇼",
@@ -762,7 +774,7 @@ function renderMatchRow(m, opts = {}) {
         <span>${m.away}</span>
         <span class="flag">${flag(m.away)}</span>
       </div>
-      <div class="match-meta">📅 ${m.date} · 🏟️ ${m.stadium} · Grupo ${m.group}</div>
+      <div class="match-meta">📅 ${m.date} ${m.time} · 🏟️ ${m.stadium} · Grupo ${m.group}</div>
       ${badge}
     </div>
   `;
@@ -1061,7 +1073,7 @@ function renderAdminResults(subTabs) {
           <span>${m.away}</span><span class="flag">${flag(m.away)}</span>
         </div>
         <div class="match-meta">
-          📅 ${m.date} · 🏟️ ${m.stadium}
+          📅 ${m.date} ${m.time} · 🏟️ ${m.stadium}
           <button class="btn-secondary" style="margin-left:8px;padding:4px 12px;"
             onclick="onSaveResult('${m.id}')">💾 Guardar</button>
           <button class="btn-secondary" style="margin-left:6px;padding:4px 12px;${isLocked ? 'background:#f87171;color:#0f172a;border-color:#f87171;' : ''}"
