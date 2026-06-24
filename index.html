@@ -464,9 +464,19 @@ function toast(msg, type = "ok") {
 async function loadAll() {
   if (!state.sb) return;
   try {
-    const [users, preds, res, settings] = await Promise.all([
+    const userPredsQuery = state.user
+      ? state.sb
+          .from("predictions")
+          .select("*")
+          .eq("user_name", state.user.name)
+          .order("updated_at", { ascending: true })
+          .range(0, 200)
+      : Promise.resolve({ data: [] });
+
+    const [users, preds, userPreds, res, settings] = await Promise.all([
       state.sb.from("users").select("name"),
-      state.sb.from("predictions").select("*"),
+      state.sb.from("predictions").select("*").order("updated_at", { ascending: true }).range(0, 5000),
+      userPredsQuery,
       state.sb.from("results").select("*"),
       state.sb.from("settings").select("*"),
     ]);
@@ -489,8 +499,7 @@ async function loadAll() {
     }
     if (state.user) {
       state.predictions = {};
-      state.allPredictions
-        .filter(p => p.user_name === state.user.name)
+      (userPreds.data || [])
         .forEach(p => {
           state.predictions[p.match_id] = { home: p.home_score, away: p.away_score };
         });
