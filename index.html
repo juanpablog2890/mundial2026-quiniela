@@ -406,6 +406,8 @@ const state = {
   adminSelectedUser: null,    // usuario seleccionado en admin → ver picks
   lockedMatches: new Set(),   // IDs de partidos bloqueados (set)
   compareWith: null,          // nombre del usuario a comparar
+  comparePredictions: {},     // { user_name: { match_id: { home, away } } }
+  compareLoading: null,
   predictView: "group",       // group | date - cómo agrupar en pantalla picks
   configError: false,
   sb: null,
@@ -508,6 +510,32 @@ async function loadAll() {
     console.error(e);
     toast("Error al cargar datos", "error");
   }
+}
+
+async function loadComparePredictions(userName) {
+  if (!state.sb || !userName) return;
+  state.compareLoading = userName;
+  const { data, error } = await state.sb
+    .from("predictions")
+    .select("*")
+    .eq("user_name", userName)
+    .order("updated_at", { ascending: true })
+    .range(0, 200);
+
+  if (error) {
+    state.compareLoading = null;
+    toast("Error al cargar picks de " + userName + ": " + error.message, "error");
+    return;
+  }
+
+  const preds = {};
+  (data || []).forEach(p => {
+    preds[p.match_id] = { home: p.home_score, away: p.away_score };
+  });
+  state.comparePredictions[userName] = preds;
+  state.compareLoading = null;
+
+  if (state.view === "compare" && state.compareWith === userName) renderCompare();
 }
 
 // =====================================================================
@@ -965,12 +993,16 @@ function renderCompare() {
   }
   const otherName = state.compareWith;
 
-  // Mis predicciones (ya en state.predictions)
-  // Predicciones del otro usuario
-  const otherPreds = {};
-  state.allPredictions
-    .filter(p => p.user_name === otherName)
-    .forEach(p => { otherPreds[p.match_id] = { home: p.home_score, away: p.away_score }; });
+  if (!state.comparePredictions[otherName] && state.compareLoading !== otherName) {
+    loadComparePredictions(otherName);
+  }
+
+  // Mis predicciones ya están en state.predictions; las del otro usuario se cargan directo de Supabase.
+  const otherPreds = state.comparePredictions[otherName] || {};
+  const compareLoadingBanner = state.compareLoading === otherName ? `
+    <div style="background:rgba(250,204,21,0.1);border:1px solid #facc15;color:#fde68a;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:13px;text-align:center;">
+      Cargando picks de ${otherName}...
+    </div>` : "";
 
   let myTotalShown = 0, otherTotalShown = 0;
 
@@ -1034,6 +1066,7 @@ function renderCompare() {
   document.getElementById("app").innerHTML = `
     <div class="card">
       <h2>🆚 Comparar contra otro participante</h2>
+      ${compareLoadingBanner}
       <div style="background:rgba(0,0,0,0.3);padding:14px;border-radius:8px;margin-bottom:16px;">
         <label>Comparar mis picks contra:</label>
         <select id="compareSelect" onchange="onCompareChange(this.value)" style="margin-top:4px;">
@@ -1056,7 +1089,11 @@ function renderCompare() {
   `;
 }
 
-function onCompareChange(name) { state.compareWith = name; renderCompare(); }
+function onCompareChange(name) {
+  state.compareWith = name;
+  renderCompare();
+  loadComparePredictions(name);
+}
 window.onCompareChange = onCompareChange;
 
 function renderAdmin() {
