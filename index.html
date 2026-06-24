@@ -485,7 +485,7 @@ async function loadAll() {
 
     const [users, preds, userPreds, res, settings] = await Promise.all([
       state.sb.from("users").select("name"),
-      state.sb.from("predictions").select("*").order("updated_at", { ascending: true }).range(0, 5000),
+      state.sb.from("predictions").select("*", { count: "exact", head: false }).order("updated_at", { ascending: true }).range(0, 9999),
       userPredsQuery,
       state.sb.from("results").select("*"),
       state.sb.from("settings").select("*"),
@@ -713,7 +713,21 @@ async function clearResult(matchId) {
 function getLeaderboard() {
   const totals = {};
   state.allUsers.forEach(u => { totals[u.name] = 0; });
+  // Use comparePredictions cache (loaded per-user, no row limit) when available
+  state.allUsers.forEach(u => {
+    const userPreds = state.comparePredictions[u.name];
+    if (userPreds) {
+      Object.entries(userPreds).forEach(([matchId, pred]) => {
+        const r = state.results[matchId];
+        if (!r) return;
+        const pts = calcPoints(pred, r);
+        if (pts != null && pts > 0) totals[u.name] = (totals[u.name] || 0) + pts;
+      });
+    }
+  });
+  // Fallback: also count from allPredictions for users not yet in comparePredictions
   state.allPredictions.forEach(p => {
+    if (state.comparePredictions[p.user_name]) return; // already counted above
     const r = state.results[p.match_id];
     if (!r) return;
     const pts = calcPoints({ home: p.home_score, away: p.away_score }, r);
@@ -722,6 +736,29 @@ function getLeaderboard() {
   return Object.entries(totals)
     .map(([name, pts]) => ({ name, pts }))
     .sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
+}
+
+async function loadAllUserPredictions() {
+  if (!state.sb) return;
+  const users = state.allUsers.map(u => u.name);
+  // Load all users in parallel, 5 at a time
+  for (let i = 0; i < users.length; i += 5) {
+    const batch = users.slice(i, i + 5);
+    await Promise.all(batch.map(async (userName) => {
+      if (state.comparePredictions[userName]) return; // already cached
+      const { data } = await state.sb
+        .from("predictions")
+        .select("*")
+        .eq("user_name", userName)
+        .order("updated_at", { ascending: true })
+        .range(0, 200);
+      const preds = {};
+      normalizePredictionRows(data || []).forEach(p => {
+        preds[p.match_id] = { home: p.home_score, away: p.away_score };
+      });
+      state.comparePredictions[userName] = preds;
+    }));
+  }
 }
 
 function totalPointsForPredictions(preds) {
@@ -740,9 +777,9 @@ async function refreshScoreData() {
   const [preds, res] = await Promise.all([
     state.sb
       .from("predictions")
-      .select("*")
+      .select("*", { count: "exact", head: false })
       .order("updated_at", { ascending: true })
-      .range(0, 5000),
+      .range(0, 9999),
     state.sb.from("results").select("*"),
   ]);
 
@@ -801,6 +838,7 @@ async function go(view) {
       </div>
     `;
     await refreshScoreData();
+    await loadAllUserPredictions();
   }
   if (view === "compare") {
     await refreshScoreData();
