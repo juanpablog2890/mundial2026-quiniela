@@ -542,19 +542,46 @@ async function savePrediction(matchId) {
   if (!p || p.home === "" || p.away === "" || p.home == null || p.away == null) return;
   const h = parseInt(p.home), a = parseInt(p.away);
   if (isNaN(h) || isNaN(a) || h < 0 || a < 0) return;
-  const { error } = await state.sb.from("predictions").upsert({
+  const payload = {
     user_name: state.user.name,
     match_id: matchId,
     home_score: h,
     away_score: a,
     updated_at: new Date().toISOString(),
-  });
-  if (error) toast("Error al guardar: " + error.message, "error");
+  };
+
+  const { data: updatedRows, error: updateError } = await state.sb
+    .from("predictions")
+    .update(payload)
+    .eq("user_name", state.user.name)
+    .eq("match_id", matchId)
+    .select("user_name,match_id,home_score,away_score,updated_at");
+
+  if (updateError) return toast("Error al guardar: " + updateError.message, "error");
+
+  if (!updatedRows || updatedRows.length === 0) {
+    const { error: insertError } = await state.sb.from("predictions").insert(payload);
+    if (insertError) return toast("Error al guardar: " + insertError.message, "error");
+  }
+
+  const existingIndex = state.allPredictions.findIndex(row =>
+    row.user_name === state.user.name && row.match_id === matchId
+  );
+  const savedRow = { ...payload };
+  if (existingIndex >= 0) state.allPredictions[existingIndex] = savedRow;
+  else state.allPredictions.push(savedRow);
 }
 
 function setPredField(matchId, side, val) {
   if (!state.predictions[matchId]) state.predictions[matchId] = { home: "", away: "" };
   state.predictions[matchId][side] = val;
+}
+
+const predSaveTimers = {};
+
+function schedulePredictionSave(matchId) {
+  clearTimeout(predSaveTimers[matchId]);
+  predSaveTimers[matchId] = setTimeout(() => savePrediction(matchId), 300);
 }
 
 // =====================================================================
@@ -765,10 +792,14 @@ function renderMatchRow(m, opts = {}) {
       </div>
       <div class="match-scores">
         <input type="number" min="0" value="${p.home}" id="ph_${m.id}" ${disabled}
-          onchange="onPredChange('${m.id}','home',this.value)" />
+          oninput="onPredInput('${m.id}','home',this.value)"
+          onchange="onPredChange('${m.id}','home',this.value)"
+          onblur="onPredChange('${m.id}','home',this.value)" />
         <span>-</span>
         <input type="number" min="0" value="${p.away}" id="pa_${m.id}" ${disabled}
-          onchange="onPredChange('${m.id}','away',this.value)" />
+          oninput="onPredInput('${m.id}','away',this.value)"
+          onchange="onPredChange('${m.id}','away',this.value)"
+          onblur="onPredChange('${m.id}','away',this.value)" />
       </div>
       <div class="match-team away">
         <span>${m.away}</span>
@@ -864,8 +895,14 @@ function setPredView(v) { state.predictView = v; renderPredict(); }
 function setGroup(g) { state.activeGroup = g; renderPredict(); }
 window.setPredView = setPredView;
 
+window.onPredInput = function(matchId, side, val) {
+  setPredField(matchId, side, val);
+  schedulePredictionSave(matchId);
+};
+
 window.onPredChange = async function(matchId, side, val) {
   setPredField(matchId, side, val);
+  clearTimeout(predSaveTimers[matchId]);
   await savePrediction(matchId);
 };
 
