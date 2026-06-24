@@ -648,14 +648,9 @@ async function saveResult(matchId, home, away) {
     state.lockedMatches.add(matchId);
     await persistLockedMatches();
   }
+  await refreshScoreData();
   toast("✅ Resultado guardado y partido bloqueado");
   renderAdmin();
-  const { data: preds } = await state.sb
-    .from("predictions")
-    .select("*")
-    .order("updated_at", { ascending: true })
-    .range(0, 5000);
-  state.allPredictions = normalizePredictionRows(preds || []);
 }
 
 async function persistLockedMatches() {
@@ -740,6 +735,27 @@ function totalPointsForPredictions(preds) {
   return total;
 }
 
+async function refreshScoreData() {
+  if (!state.sb) return;
+  const [preds, res] = await Promise.all([
+    state.sb
+      .from("predictions")
+      .select("*")
+      .order("updated_at", { ascending: true })
+      .range(0, 5000),
+    state.sb.from("results").select("*"),
+  ]);
+
+  if (preds.error) return toast("Error al cargar predicciones: " + preds.error.message, "error");
+  if (res.error) return toast("Error al cargar resultados: " + res.error.message, "error");
+
+  state.allPredictions = normalizePredictionRows(preds.data || []);
+  state.results = {};
+  (res.data || []).forEach(r => {
+    state.results[r.match_id] = { home: r.home_score, away: r.away_score };
+  });
+}
+
 // =====================================================================
 //  RENDER
 // =====================================================================
@@ -775,7 +791,22 @@ function renderNav() {
   `;
 }
 
-function go(view) { state.view = view; render(); }
+async function go(view) {
+  state.view = view;
+  if (view === "board") {
+    document.getElementById("app").innerHTML = `
+      <div class="card">
+        <h2>🏆 Tabla de posiciones</h2>
+        <p class="small center">Actualizando puntajes...</p>
+      </div>
+    `;
+    await refreshScoreData();
+  }
+  if (view === "compare") {
+    await refreshScoreData();
+  }
+  render();
+}
 
 function renderConfigError() {
   document.getElementById("app").innerHTML = `
