@@ -460,6 +460,14 @@ function toast(msg, type = "ok") {
   setTimeout(() => el.remove(), 2800);
 }
 
+function normalizePredictionRows(rows) {
+  const byUserMatch = {};
+  (rows || []).forEach(p => {
+    byUserMatch[`${p.user_name}::${p.match_id}`] = p;
+  });
+  return Object.values(byUserMatch);
+}
+
 // =====================================================================
 //  Carga de datos remota
 // =====================================================================
@@ -483,7 +491,7 @@ async function loadAll() {
       state.sb.from("settings").select("*"),
     ]);
     state.allUsers = users.data || [];
-    state.allPredictions = preds.data || [];
+    state.allPredictions = normalizePredictionRows(preds.data || []);
     state.results = {};
     (res.data || []).forEach(r => {
       state.results[r.match_id] = { home: r.home_score, away: r.away_score };
@@ -501,7 +509,7 @@ async function loadAll() {
     }
     if (state.user) {
       state.predictions = {};
-      (userPreds.data || [])
+      normalizePredictionRows(userPreds.data || [])
         .forEach(p => {
           state.predictions[p.match_id] = { home: p.home_score, away: p.away_score };
         });
@@ -529,7 +537,7 @@ async function loadComparePredictions(userName) {
   }
 
   const preds = {};
-  (data || []).forEach(p => {
+  normalizePredictionRows(data || []).forEach(p => {
     preds[p.match_id] = { home: p.home_score, away: p.away_score };
   });
   state.comparePredictions[userName] = preds;
@@ -642,8 +650,12 @@ async function saveResult(matchId, home, away) {
   }
   toast("✅ Resultado guardado y partido bloqueado");
   renderAdmin();
-  const { data: preds } = await state.sb.from("predictions").select("*");
-  state.allPredictions = preds || [];
+  const { data: preds } = await state.sb
+    .from("predictions")
+    .select("*")
+    .order("updated_at", { ascending: true })
+    .range(0, 5000);
+  state.allPredictions = normalizePredictionRows(preds || []);
 }
 
 async function persistLockedMatches() {
@@ -715,6 +727,17 @@ function getLeaderboard() {
   return Object.entries(totals)
     .map(([name, pts]) => ({ name, pts }))
     .sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
+}
+
+function totalPointsForPredictions(preds) {
+  let total = 0;
+  Object.entries(preds || {}).forEach(([matchId, pred]) => {
+    const result = state.results[matchId];
+    if (!result) return;
+    const pts = calcPoints(pred, result);
+    if (pts != null && pts > 0) total += pts;
+  });
+  return total;
 }
 
 // =====================================================================
@@ -1004,7 +1027,8 @@ function renderCompare() {
       Cargando picks de ${otherName}...
     </div>` : "";
 
-  let myTotalShown = 0, otherTotalShown = 0;
+  const myTotalShown = totalPointsForPredictions(state.predictions);
+  const otherTotalShown = totalPointsForPredictions(otherPreds);
 
   // Lista de partidos agrupados por fecha
   const byDate = {};
@@ -1025,11 +1049,11 @@ function renderCompare() {
       if (r) {
         if (myP) {
           const pts = calcPoints(myP, r);
-          if (pts != null) { myTotalShown += pts; myPts = pts > 0 ? ` +${pts}` : ""; }
+          if (pts != null) { myPts = pts > 0 ? ` +${pts}` : ""; }
         }
         if (otherP) {
           const pts = calcPoints(otherP, r);
-          if (pts != null) { otherTotalShown += pts; otherPts = pts > 0 ? ` +${pts}` : ""; }
+          if (pts != null) { otherPts = pts > 0 ? ` +${pts}` : ""; }
         }
       }
       const sameAsMe = myP && otherP && myP.home == otherP.home && myP.away == otherP.away;
