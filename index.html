@@ -237,59 +237,6 @@
     .small { font-size: 13px; color: #94a3b8; }
     .center { text-align: center; }
     .loading { text-align: center; padding: 40px; color: #94a3b8; }
-
-    .brk-match {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px;
-      overflow: hidden;
-      width: 180px;
-    }
-    .brk-date {
-      font-size: 9px;
-      color: #64748b;
-      padding: 3px 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      background: rgba(0,0,0,0.2);
-    }
-    .brk-team {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 8px;
-    }
-    .brk-team:first-of-type { border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .brk-flag { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
-    .brk-name { font-size: 11px; font-weight: 600; color: #f1f5f9; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-    .brk-score {
-      width: 28px; height: 24px;
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 4px;
-      color: #f1f5f9;
-      font-size: 11px;
-      font-weight: 700;
-      text-align: center;
-      padding: 0;
-      font-family: inherit;
-      flex-shrink: 0;
-    }
-    .brk-score:focus { border-color: #facc15; outline: none; }
-    .brk-win { background: rgba(74, 222, 128, 0.12); }
-    .brk-win .brk-name { color: #4ade80; }
-    .brk-lose { opacity: 0.45; }
-    .brk-tbd .brk-name { color: #475569; font-style: italic; }
-    .brk-tbd .brk-flag { opacity: 0.3; }
-    .brk-champ {
-      background: rgba(250,204,21,0.12);
-      border: 1px solid #facc15;
-      border-radius: 8px;
-      padding: 10px 14px;
-      text-align: center;
-      width: 180px;
-    }
-    .brk-champ-label { font-size: 10px; color: #facc15; font-weight: 700; margin-bottom: 4px; }
-    .brk-champ-team { font-size: 15px; font-weight: 700; color: #f1f5f9; }
     @media (max-width: 600px) {
       .match-row { grid-template-columns: 1fr; }
       .match-team.away { justify-content: flex-start; }
@@ -803,7 +750,6 @@ function render() {
   if (state.view === "predict") return renderPredict();
   if (state.view === "board") return renderBoard();
   if (state.view === "compare") return renderCompare();
-  if (state.view === "bracket") return renderBracket();
   if (state.view === "elim") return renderElim();
 }
 
@@ -822,7 +768,6 @@ function renderNav() {
     <button class="${state.view==='predict'?'active':''}" onclick="go('predict')">🎯 Mis Picks</button>
     <button class="${state.view==='board'?'active':''}" onclick="go('board')">🏆 Tabla</button>
     <button class="${state.view==='compare'?'active':''}" onclick="go('compare')">🆚 Comparar</button>
-    <button class="${state.view==='bracket'?'active':''}" onclick="go('bracket')">📊 Bracket</button>
     <button class="${state.view==='elim'?'active':''}" onclick="go('elim')">🏅 Eliminatorias</button>
     <button class="${state.view==='admin'?'active':''}" onclick="go('admin')">⚙️ Admin</button>
     <span class="badge">${state.user.name}</span>
@@ -1053,6 +998,10 @@ window.onPredChange = async function(matchId, side, val) {
 
 function renderBoard() {
   const board = getLeaderboard();
+  const elimBoard = getLeaderboardElim();
+  const elimMap = {};
+  elimBoard.forEach(r => { elimMap[r.name] = r.pts; });
+
   const totalResults = Object.keys(state.results).length;
   const totalMatches = MATCHES.length;
   const realChamp = (state.allChampions && state.allChampions["__winner__"]) || null;
@@ -1070,14 +1019,16 @@ function renderBoard() {
     const champBadge = userChamp
       ? `<span style="display:block;font-size:11px;color:${realChamp&&realChamp===userChamp?'#4ade80':'#94a3b8'};">${flag(userChamp)} ${userChamp}${realChamp===userChamp?' ✓':''}</span>`
       : `<span style="display:block;font-size:11px;color:#64748b;">sin pick de campeón</span>`;
+    const elimPts = elimMap[row.name] || 0;
     return `
       <tr style="${isMe}">
         <td class="rank ${rankCls}">${medal}</td>
         <td>${row.name}${row.name===state.user.name?' <span class="badge">tú</span>':''}<br>${champBadge}</td>
         <td style="text-align:right;font-weight:700;color:#facc15;">${row.pts}</td>
+        <td style="text-align:right;font-weight:700;color:#818cf8;">${elimPts}</td>
       </tr>
     `;
-  }).join("") || `<tr><td colspan="3" class="center small">Aún no hay usuarios registrados.</td></tr>`;
+  }).join("") || `<tr><td colspan="4" class="center small">Aún no hay usuarios registrados.</td></tr>`;
 
   document.getElementById("app").innerHTML = `
     <div class="card">
@@ -1086,7 +1037,7 @@ function renderBoard() {
       ${champNote}
       <table class="leaderboard">
         <thead>
-          <tr><th>#</th><th>Participante</th><th style="text-align:right;">Puntos</th></tr>
+          <tr><th>#</th><th>Participante</th><th style="text-align:right;">Pts Grupos</th><th style="text-align:right;color:#818cf8;">Pts Elim.</th></tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
@@ -1171,9 +1122,22 @@ function renderElim() {
   `;
 }
 
+function totalPointsForPredictionsFiltered(preds, matchIds) {
+  let total = 0;
+  Object.entries(preds || {}).forEach(([matchId, pred]) => {
+    if (matchIds && !matchIds.has(matchId)) return;
+    const result = state.results[matchId];
+    if (!result) return;
+    const pts = calcPoints(pred, result);
+    if (pts != null && pts > 0) total += pts;
+  });
+  return total;
+}
+
 function renderCompare() {
   // Lista de usuarios disponibles para comparar (todos menos el actual)
   const otherUsers = state.allUsers.filter(u => u.name !== state.user.name);
+  if (!state.compareMode) state.compareMode = "grupos"; // "grupos" | "elim"
 
   if (otherUsers.length === 0) {
     document.getElementById("app").innerHTML = `
@@ -1189,24 +1153,29 @@ function renderCompare() {
     state.compareWith = otherUsers[0].name;
   }
   const otherName = state.compareWith;
+  const isElim = state.compareMode === "elim";
 
   if (!state.comparePredictions[otherName] && state.compareLoading !== otherName) {
     loadComparePredictions(otherName);
   }
 
-  // Mis predicciones ya están en state.predictions; las del otro usuario se cargan directo de Supabase.
   const otherPreds = state.comparePredictions[otherName] || {};
   const compareLoadingBanner = state.compareLoading === otherName ? `
     <div style="background:rgba(250,204,21,0.1);border:1px solid #facc15;color:#fde68a;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:13px;text-align:center;">
       Cargando picks de ${otherName}...
     </div>` : "";
 
-  const myTotalShown = totalPointsForPredictions(state.predictions);
-  const otherTotalShown = totalPointsForPredictions(otherPreds);
+  // Filter matches by mode
+  const elimIds = new Set(MATCHES.map(m => m.id));
+  const filterIds = isElim ? elimIds : null;
+  const matchList = MATCHES; // same matches either way for now
+
+  const myTotalShown = totalPointsForPredictionsFiltered(state.predictions, filterIds);
+  const otherTotalShown = totalPointsForPredictionsFiltered(otherPreds, filterIds);
 
   // Lista de partidos agrupados por fecha
   const byDate = {};
-  MATCHES.forEach(m => {
+  matchList.forEach(m => {
     if (!byDate[m.date]) byDate[m.date] = [];
     byDate[m.date].push(m);
   });
@@ -1236,7 +1205,7 @@ function renderCompare() {
         <div style="display:grid;grid-template-columns:1fr 70px 1fr;align-items:center;gap:8px;padding:6px 10px;background:rgba(0,0,0,0.2);border-radius:6px;margin-bottom:4px;font-size:13px;${sameAsMe?'border-left:3px solid #facc15;':''}">
           <div style="text-align:right;">
             <div>${flag(m.home)} ${m.home} <strong>vs</strong> ${m.away} ${flag(m.away)}</div>
-            <div class="small" style="opacity:.5;">Grupo ${m.group} · ${realScore}</div>
+            <div class="small" style="opacity:.5;">${m.group} · ${realScore}</div>
           </div>
           <div style="text-align:center;font-weight:700;">
             <div style="color:#facc15;">${myPText}<span style="color:#4ade80;">${myPts}</span></div>
@@ -1261,10 +1230,17 @@ function renderCompare() {
     .map(u => `<option value="${u.name}" ${u.name===otherName?'selected':''}>${u.name}</option>`)
     .join("");
 
+  const accentColor = isElim ? "#818cf8" : "#facc15";
+  const modeLabel = isElim ? "🏅 Eliminatorias" : "🏆 Fase de Grupos";
+
   document.getElementById("app").innerHTML = `
     <div class="card">
       <h2>🆚 Comparar contra otro participante</h2>
       ${compareLoadingBanner}
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button onclick="setCompareMode('grupos')" style="flex:1;padding:8px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid ${!isElim?'#facc15':'rgba(255,255,255,0.15)'};background:${!isElim?'rgba(250,204,21,0.15)':'rgba(255,255,255,0.05)'};color:${!isElim?'#facc15':'#94a3b8'};">🏆 Grupos</button>
+        <button onclick="setCompareMode('elim')" style="flex:1;padding:8px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid ${isElim?'#818cf8':'rgba(255,255,255,0.15)'};background:${isElim?'rgba(129,140,248,0.15)':'rgba(255,255,255,0.05)'};color:${isElim?'#818cf8':'#94a3b8'};">🏅 Eliminatorias</button>
+      </div>
       <div style="background:rgba(0,0,0,0.3);padding:14px;border-radius:8px;margin-bottom:16px;">
         <label>Comparar mis picks contra:</label>
         <select id="compareSelect" onchange="onCompareChange(this.value)" style="margin-top:4px;">
@@ -1272,13 +1248,15 @@ function renderCompare() {
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;text-align:center;">
-        <div style="background:rgba(250,204,21,0.1);padding:12px;border-radius:8px;border:1px solid #facc15;">
+        <div style="background:rgba(250,204,21,0.1);padding:12px;border-radius:8px;border:1px solid ${accentColor};">
           <div class="small">Tú · ${state.user.name}</div>
-          <div style="font-size:24px;font-weight:800;color:#facc15;">${myTotalShown} pts</div>
+          <div style="font-size:24px;font-weight:800;color:${accentColor};">${myTotalShown} pts</div>
+          <div class="small" style="color:#64748b;">${modeLabel}</div>
         </div>
         <div style="background:rgba(148,163,184,0.1);padding:12px;border-radius:8px;border:1px solid #94a3b8;">
           <div class="small">${otherName}</div>
           <div style="font-size:24px;font-weight:800;color:#94a3b8;">${otherTotalShown} pts</div>
+          <div class="small" style="color:#64748b;">${modeLabel}</div>
         </div>
       </div>
       <p class="small">Las filas con borde amarillo significan que ambos tienen el mismo pick.</p>
@@ -1286,6 +1264,12 @@ function renderCompare() {
     </div>
   `;
 }
+
+function setCompareMode(mode) {
+  state.compareMode = mode;
+  renderCompare();
+}
+window.setCompareMode = setCompareMode;
 
 function onCompareChange(name) {
   state.compareWith = name;
@@ -1818,192 +1802,6 @@ function downloadPDF() {
 
 window.onDownloadPDF = downloadPDF;
 
-
-// =====================================================================
-//  BRACKET 16VOS DE FINAL
-// =====================================================================
-function renderBracket() {
-  const FLAGS_B = {
-    "México":"🇲🇽","Sudáfrica":"🇿🇦","Canadá":"🇨🇦","Brasil":"🇧🇷","Alemania":"🇩🇪",
-    "Paraguay":"🇵🇾","Países Bajos":"🇳🇱","Marruecos":"🇲🇦","Costa de Marfil":"🇨🇮",
-    "Noruega":"🇳🇴","Francia":"🇫🇷","Suecia":"🇸🇪","Ecuador":"🇪🇨","Inglaterra":"🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-    "RD del Congo":"🇨🇩","Bélgica":"🇧🇪","Senegal":"🇸🇳","EE.UU.":"🇺🇸","Bosnia y Herz.":"🇧🇦",
-    "España":"🇪🇸","Austria":"🇦🇹","Portugal":"🇵🇹","Croacia":"🇭🇷","Suiza":"🇨🇭",
-    "Argelia":"🇩🇿","Australia":"🇦🇺","Egipto":"🇪🇬","Argentina":"🇦🇷","Cabo Verde":"🇨🇻",
-    "Colombia":"🇨🇴","Ghana":"🇬🇭","Japón":"🇯🇵","Corea":"🇰🇷","Irán":"🇮🇷"
-  };
-  const bflag = t => FLAGS_B[t] || flag(t) || "🏳️";
-
-  if (!state.bracketScores) state.bracketScores = {};
-
-  const BRACKET_R16_LEFT = [
-    {id:"br1",home:"Alemania",away:"Paraguay",date:"Lun 29 Jun"},
-    {id:"br2",home:"Francia",away:"Suecia",date:"Mar 30 Jun"},
-    {id:"br3",home:"Sudáfrica",away:"Canadá",date:"Dom 28 Jun"},
-    {id:"br4",home:"Países Bajos",away:"Marruecos",date:"Lun 29 Jun"},
-    {id:"br5",home:"Portugal",away:"Croacia",date:"Jue 2 Jul"},
-    {id:"br6",home:"España",away:"Austria",date:"Jue 2 Jul"},
-    {id:"br7",home:"EE.UU.",away:"Bosnia y Herz.",date:"Mié 1 Jul"},
-    {id:"br8",home:"Bélgica",away:"Corea",date:"Mié 1 Jul"},
-  ];
-  const BRACKET_R16_RIGHT = [
-    {id:"br9", home:"Brasil",away:"Japón",date:"Lun 29 Jun"},
-    {id:"br10",home:"Costa de Marfil",away:"Noruega",date:"Mar 30 Jun"},
-    {id:"br11",home:"México",away:"Ecuador",date:"Mar 30 Jun"},
-    {id:"br12",home:"Inglaterra",away:"Senegal",date:"Mié 1 Jul"},
-    {id:"br13",home:"Argentina",away:"Cabo Verde",date:"Vie 3 Jul"},
-    {id:"br14",home:"Australia",away:"Egipto",date:"Vie 3 Jul"},
-    {id:"br15",home:"Suiza",away:"Irán",date:"Jue 2 Jul"},
-    {id:"br16",home:"Colombia",away:"Ghana",date:"Vie 3 Jul"},
-  ];
-
-  function bGetWinner(matchId, home, away) {
-    const s = state.bracketScores[matchId];
-    if (!s || s.h === "" || s.a === "" || s.h == null || s.a == null) return null;
-    const h = parseInt(s.h), a = parseInt(s.a);
-    if (isNaN(h) || isNaN(a) || h === a) return null;
-    return h > a ? home : away;
-  }
-
-  function bMatchHTML(matchId, home, away, date) {
-    const s = state.bracketScores[matchId] || {h:"",a:""};
-    const w = bGetWinner(matchId, home, away);
-    const homeWin = w === home;
-    const awayWin = w === away;
-    const noTeam = !home;
-    return `<div class="brk-match" id="bm_${matchId}">
-      <div class="brk-date">${date||"Por definir"}</div>
-      <div class="brk-team ${homeWin?"brk-win":awayWin&&w?"brk-lose":""} ${noTeam?"brk-tbd":""}">
-        <span class="brk-flag">${bflag(home||"?")}</span>
-        <span class="brk-name">${home||"Por definir"}</span>
-        <input class="brk-score" type="number" min="0" max="20" value="${s.h}" placeholder="-"
-          data-mid="${matchId}" data-side="h">
-      </div>
-      <div class="brk-team ${awayWin?"brk-win":homeWin&&w?"brk-lose":""} ${noTeam?"brk-tbd":""}">
-        <span class="brk-flag">${bflag(away||"?")}</span>
-        <span class="brk-name">${away||"Por definir"}</span>
-        <input class="brk-score" type="number" min="0" max="20" value="${s.a}" placeholder="-"
-          data-mid="${matchId}" data-side="a">
-      </div>
-    </div>`;
-  }
-
-  function connLines(slots, side, totalH) {
-    const w = 16;
-    let paths = "";
-    for (let i = 0; i < slots.length; i += 2) {
-      const y1 = slots[i], y2 = slots[i+1], mid = (y1+y2)/2;
-      if (side === "left") {
-        paths += `<line x1="0" y1="${y1}" x2="8" y2="${y1}" stroke="#334155" stroke-width="1"/>
-          <line x1="0" y1="${y2}" x2="8" y2="${y2}" stroke="#334155" stroke-width="1"/>
-          <line x1="8" y1="${y1}" x2="8" y2="${y2}" stroke="#334155" stroke-width="1"/>
-          <line x1="8" y1="${mid}" x2="16" y2="${mid}" stroke="#334155" stroke-width="1"/>`;
-      } else {
-        paths += `<line x1="16" y1="${y1}" x2="8" y2="${y1}" stroke="#334155" stroke-width="1"/>
-          <line x1="16" y1="${y2}" x2="8" y2="${y2}" stroke="#334155" stroke-width="1"/>
-          <line x1="8" y1="${y1}" x2="8" y2="${y2}" stroke="#334155" stroke-width="1"/>
-          <line x1="8" y1="${mid}" x2="0" y2="${mid}" stroke="#334155" stroke-width="1"/>`;
-      }
-    }
-    return `<svg width="16" height="${totalH}" style="display:block;flex-shrink:0">${paths}</svg>`;
-  }
-
-  const bGW = id => {
-    const all = [...BRACKET_R16_LEFT, ...BRACKET_R16_RIGHT];
-    const m = all.find(x=>x.id===id);
-    return m ? bGetWinner(id, m.home, m.away) : null;
-  };
-
-  const qf = [
-    {id:"bqf1",home:bGW("br1"),away:bGW("br2")},
-    {id:"bqf2",home:bGW("br3"),away:bGW("br4")},
-    {id:"bqf3",home:bGW("br5"),away:bGW("br6")},
-    {id:"bqf4",home:bGW("br7"),away:bGW("br8")},
-    {id:"bqf5",home:bGW("br9"),away:bGW("br10")},
-    {id:"bqf6",home:bGW("br11"),away:bGW("br12")},
-    {id:"bqf7",home:bGW("br13"),away:bGW("br14")},
-    {id:"bqf8",home:bGW("br15"),away:bGW("br16")},
-  ];
-  const sf = [
-    {id:"bsf1",home:bGetWinner("bqf1",qf[0].home,qf[0].away),away:bGetWinner("bqf2",qf[1].home,qf[1].away)},
-    {id:"bsf2",home:bGetWinner("bqf3",qf[2].home,qf[2].away),away:bGetWinner("bqf4",qf[3].home,qf[3].away)},
-    {id:"bsf3",home:bGetWinner("bqf5",qf[4].home,qf[4].away),away:bGetWinner("bqf6",qf[5].home,qf[5].away)},
-    {id:"bsf4",home:bGetWinner("bqf7",qf[6].home,qf[6].away),away:bGetWinner("bqf8",qf[7].home,qf[7].away)},
-  ];
-  const fin1 = {id:"bf1",home:bGetWinner("bsf1",sf[0].home,sf[0].away),away:bGetWinner("bsf3",sf[2].home,sf[2].away)};
-  const fin2 = {id:"bf2",home:bGetWinner("bsf2",sf[1].home,sf[1].away),away:bGetWinner("bsf4",sf[3].home,sf[3].away)};
-  const gf   = {id:"bgf",home:bGetWinner("bf1",fin1.home,fin1.away),away:bGetWinner("bf2",fin2.home,fin2.away)};
-  const champ = bGetWinner("bgf",gf.home,gf.away);
-
-  const MH = 72, GAP = 6, U = MH + GAP;
-  const TH = 8 * U;
-
-  function yCenter(idx) { return idx * U + MH/2; }
-
-  const connL8 = connLines([0,1,2,3,4,5,6,7].map(i => yCenter(i)), "left", TH);
-  const connR8 = connLines([0,1,2,3,4,5,6,7].map(i => yCenter(i)), "right", TH);
-
-  const qfTop = (unit*2 - MH + GAP);
-  function yQF(i) { return (unit-MH)/2 + i*U + MH/2; }
-  const slots4L = [0,1,2,3].map(i => (unit-MH)/2 + i*U + MH/2);
-  const slots4R = slots4L;
-  const connQL = connLines(slots4L, "left", TH);
-  const connQR = connLines(slots4R, "right", TH);
-
-  const sfPT = (unit-MH)/2 + U/2;
-  const slots2L = [0,1].map(i => sfPT + i*U + MH/2);
-  const slots2R = slots2L;
-  const connSFL = connLines(slots2L, "left", TH);
-  const connSFR = connLines(slots2R, "right", TH);
-
-  const finPT = (unit-MH)/2 + U*1.5;
-
-  const champHTML = champ
-    ? `<div class="brk-champ"><div class="brk-champ-label">🏆 Campeón Mundial 2026</div>
-        <div class="brk-champ-team">${bflag(champ)} ${champ}</div></div>`
-    : `<div class="brk-champ" style="opacity:0.5"><div class="brk-champ-label">🏆 Campeón</div>
-        <div class="brk-champ-team" style="font-size:12px;color:#64748b">Por definir</div></div>`;
-
-  document.getElementById("app").innerHTML = `
-    <div class="card" style="padding:16px;overflow-x:auto;">
-      <h2>📊 Bracket — 16vos de Final Mundial 2026</h2>
-      <p class="small" style="margin-bottom:16px;">Ingresá los goles de cada partido para avanzar equipos automáticamente.</p>
-      <div style="display:flex;align-items:flex-start;gap:0;min-width:1000px;" id="brk-root">
-        <div style="display:flex;flex-direction:column;gap:${GAP}px;width:180px;">${BRACKET_R16_LEFT.map(m=>bMatchHTML(m.id,m.home,m.away,m.date)).join("")}</div>
-        ${connL8}
-        <div style="display:flex;flex-direction:column;gap:${U-MH+GAP}px;padding-top:${(U-MH)/2}px;width:180px;">${qf.slice(0,4).map(m=>bMatchHTML(m.id,m.home,m.away,"Cuartos")).join("")}</div>
-        ${connQL}
-        <div style="display:flex;flex-direction:column;gap:${2*U-MH+GAP}px;padding-top:${sfPT}px;width:180px;">${sf.slice(0,2).map(m=>bMatchHTML(m.id,m.home,m.away,"Semifinal")).join("")}</div>
-        ${connSFL}
-        <div style="display:flex;flex-direction:column;align-items:center;padding-top:${finPT}px;width:180px;gap:10px;">
-          ${bMatchHTML(fin1.id,fin1.home,fin1.away,"Final")}
-          <svg width="2" height="14"><line x1="1" y1="0" x2="1" y2="14" stroke="#334155" stroke-width="1"/></svg>
-          ${bMatchHTML(gf.id,gf.home,gf.away,"Gran Final")}
-          <svg width="2" height="14"><line x1="1" y1="0" x2="1" y2="14" stroke="#334155" stroke-width="1"/></svg>
-          ${champHTML}
-          <svg width="2" height="14"><line x1="1" y1="0" x2="1" y2="14" stroke="#334155" stroke-width="1"/></svg>
-          ${bMatchHTML(fin2.id,fin2.home,fin2.away,"Final")}
-        </div>
-        ${connSFR}
-        <div style="display:flex;flex-direction:column;gap:${2*U-MH+GAP}px;padding-top:${sfPT}px;width:180px;">${sf.slice(2,4).map(m=>bMatchHTML(m.id,m.home,m.away,"Semifinal")).join("")}</div>
-        ${connQR}
-        <div style="display:flex;flex-direction:column;gap:${U-MH+GAP}px;padding-top:${(U-MH)/2}px;width:180px;">${qf.slice(4,8).map(m=>bMatchHTML(m.id,m.home,m.away,"Cuartos")).join("")}</div>
-        ${connR8}
-        <div style="display:flex;flex-direction:column;gap:${GAP}px;width:180px;">${BRACKET_R16_RIGHT.map(m=>bMatchHTML(m.id,m.home,m.away,m.date)).join("")}</div>
-      </div>
-    </div>
-  `;
-
-  document.querySelectorAll(".brk-score").forEach(inp => {
-    inp.addEventListener("input", function() {
-      const mid = this.dataset.mid, side = this.dataset.side;
-      if (!state.bracketScores[mid]) state.bracketScores[mid] = {h:"",a:""};
-      state.bracketScores[mid][side] = this.value;
-      renderBracket();
-    });
-    inp.addEventListener("click", e => e.stopPropagation());
-  });
-}
 
 window.go = go;
 window.logout = logout;
