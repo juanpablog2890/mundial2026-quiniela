@@ -1,0 +1,2152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mundial 2026 - Quiniela</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
+  <style>
+    *,*::before,*::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #f1f5f9;
+      min-height: 100vh;
+    }
+    header {
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 2px solid #facc15;
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(8px);
+    }
+    .brand {
+      font-size: 22px;
+      font-weight: 800;
+      color: #facc15;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    .nav button {
+      background: rgba(255,255,255,0.08);
+      color: #f1f5f9;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .nav button:hover { background: rgba(255,255,255,0.15); }
+    .nav button.active {
+      background: #facc15;
+      color: #0f172a;
+      border-color: #facc15;
+    }
+    main { padding: 20px; max-width: 1100px; margin: 0 auto; }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    h1, h2, h3 { margin: 0 0 12px 0; }
+    h1 { color: #facc15; font-size: 28px; }
+    h2 { color: #facc15; font-size: 22px; }
+    h3 { color: #fde68a; font-size: 18px; }
+    p { line-height: 1.5; color: #cbd5e1; }
+    input, select, button {
+      font-family: inherit;
+      font-size: 14px;
+    }
+    input[type="text"], input[type="password"], input[type="number"], select {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #f1f5f9;
+      padding: 10px 12px;
+      border-radius: 8px;
+      width: 100%;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: #facc15; }
+    label { display: block; margin-bottom: 4px; font-size: 13px; color: #94a3b8; font-weight: 600; }
+    .btn-primary {
+      background: #facc15;
+      color: #0f172a;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 15px;
+      width: 100%;
+      transition: all 0.15s;
+    }
+    .btn-primary:hover { background: #fde047; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: #f1f5f9;
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.15); }
+    .group-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .group-tabs button {
+      background: rgba(255,255,255,0.05);
+      color: #cbd5e1;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      min-width: 50px;
+    }
+    .group-tabs button.active {
+      background: #facc15;
+      color: #0f172a;
+      border-color: #facc15;
+    }
+    .match-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .match-team {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+    .match-team.away { justify-content: flex-end; }
+    .match-team .flag { font-size: 20px; }
+    .match-scores {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .match-scores input {
+      width: 48px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 6px;
+    }
+    .match-meta {
+      grid-column: 1 / -1;
+      font-size: 12px;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 4px;
+    }
+    .match-points {
+      grid-column: 1 / -1;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .points-3 { color: #4ade80; }
+    .points-1 { color: #facc15; }
+    .points-0 { color: #f87171; }
+    .leaderboard {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .leaderboard th, .leaderboard td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .leaderboard th {
+      background: rgba(0,0,0,0.3);
+      color: #facc15;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+    .leaderboard tr:first-child td { font-weight: 700; }
+    .leaderboard .rank {
+      font-weight: 700;
+      width: 50px;
+    }
+    .leaderboard .rank.gold { color: #facc15; }
+    .leaderboard .rank.silver { color: #cbd5e1; }
+    .leaderboard .rank.bronze { color: #d97706; }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #16a34a;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      z-index: 200;
+      animation: slide-up 0.2s;
+    }
+    .toast.error { background: #dc2626; }
+    @keyframes slide-up {
+      from { opacity: 0; transform: translate(-50%, 20px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    .form-row { display: grid; gap: 12px; margin-bottom: 12px; }
+    .form-row.two { grid-template-columns: 1fr 1fr; }
+    .config-warning {
+      background: rgba(220, 38, 38, 0.15);
+      border: 2px solid #dc2626;
+      color: #fca5a5;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .badge {
+      background: rgba(250, 204, 21, 0.2);
+      color: #facc15;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .small { font-size: 13px; color: #94a3b8; }
+    .center { text-align: center; }
+    .loading { text-align: center; padding: 40px; color: #94a3b8; }
+    @media (max-width: 600px) {
+      .match-row { grid-template-columns: 1fr; }
+      .match-team.away { justify-content: flex-start; }
+      .match-scores { justify-content: center; }
+      .form-row.two { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- =============== HEADER =============== -->
+<header>
+  <div class="brand">⚽ Mundial 2026</div>
+  <div class="nav" id="nav"></div>
+</header>
+
+<!-- =============== MAIN =============== -->
+<main id="app">
+  <div class="loading">Cargando…</div>
+</main>
+
+<!-- =============== SCRIPTS =============== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// =====================================================================
+//  CONFIGURACIÓN — REEMPLAZAR ESTOS DOS VALORES con los de tu Supabase
+// =====================================================================
+const SUPABASE_URL  = "https://hoocwmwfrgywipmnifta.supabase.co";
+const SUPABASE_ANON = "sb_publishable_iUEy_06H2gOnorCcpfDZRQ_iN7Q-Irn";
+const ADMIN_PASSWORD = "admin2026";                // contraseña del panel admin (cámbiala si quieres)
+// =====================================================================
+
+const SCORING = { EXACT: 3, WINNER: 1, CHAMPION: 10 };
+
+const GROUPS = {
+  Octavos: ["Sudáfrica","Canadá","Brasil","Japón","Alemania","Paraguay","Países Bajos","Marruecos",
+    "Costa de Marfil","Noruega","Francia","Suecia","México","Ecuador","Inglaterra","RD del Congo",
+    "Bélgica","Senegal","EE.UU.","Bosnia y Herz.","España","Austria","Portugal","Croacia",
+    "Suiza","Argelia","Australia","Egipto","Argentina","Cabo Verde","Colombia","Ghana"],
+};
+
+const CHAMPION_TEAMS = ["Argentina","Alemania","Australia","Austria","Bélgica","Bosnia y Herz.",
+  "Brasil","Cabo Verde","Canada","Colombia","Costa de Marfil","Croacia","Ecuador","Egipto",
+  "España","EE.UU.","Francia","Ghana","Inglaterra","Japón","Marruecos","México","Noruega",
+  "Países Bajos","Paraguay","Portugal","RD del Congo","Senegal","Sudáfrica","Suecia","Suiza","Argelia"];
+
+const MATCHES = [
+  {id:"r01",group:"Octavos",home:"Sudáfrica",      away:"Canadá",         date:"Dom 28 Jun",time:"15:00"},
+  {id:"r02",group:"Octavos",home:"Brasil",          away:"Japón",          date:"Lun 29 Jun",time:"13:00"},
+  {id:"r03",group:"Octavos",home:"Alemania",        away:"Paraguay",       date:"Lun 29 Jun",time:"16:30"},
+  {id:"r04",group:"Octavos",home:"Países Bajos",    away:"Marruecos",      date:"Lun 29 Jun",time:"21:00"},
+  {id:"r05",group:"Octavos",home:"Costa de Marfil", away:"Noruega",        date:"Mar 30 Jun",time:"13:00"},
+  {id:"r06",group:"Octavos",home:"Francia",         away:"Suecia",         date:"Mar 30 Jun",time:"17:00"},
+  {id:"r07",group:"Octavos",home:"México",          away:"Ecuador",        date:"Mar 30 Jun",time:"21:00"},
+  {id:"r08",group:"Octavos",home:"Inglaterra",      away:"RD del Congo",   date:"Mié 1 Jul", time:"12:00"},
+  {id:"r09",group:"Octavos",home:"Bélgica",         away:"Senegal",        date:"Mié 1 Jul", time:"16:00"},
+  {id:"r10",group:"Octavos",home:"EE.UU.",          away:"Bosnia y Herz.", date:"Mié 1 Jul", time:"20:00"},
+  {id:"r11",group:"Octavos",home:"España",          away:"Austria",        date:"Jue 2 Jul", time:"15:00"},
+  {id:"r12",group:"Octavos",home:"Portugal",        away:"Croacia",        date:"Jue 2 Jul", time:"19:00"},
+  {id:"r13",group:"Octavos",home:"Suiza",           away:"Argelia",        date:"Jue 2 Jul", time:"23:00"},
+  {id:"r14",group:"Octavos",home:"Australia",       away:"Egipto",         date:"Vie 3 Jul", time:"14:00"},
+  {id:"r15",group:"Octavos",home:"Argentina",       away:"Cabo Verde",     date:"Vie 3 Jul", time:"18:00"},
+  {id:"r16",group:"Octavos",home:"Colombia",        away:"Ghana",          date:"Vie 3 Jul", time:"21:30"},
+];
+const GRUPOS_MATCHES = [
+  // GRUPO A
+  {id:"p01",group:"A",home:"México",away:"Sudáfrica",date:"Jue 11 Jun",time:"15:00"},
+  {id:"p02",group:"A",home:"Rep. de Corea",away:"Chequia",date:"Jue 11 Jun",time:"22:00"},
+  {id:"p03",group:"A",home:"Chequia",away:"Sudáfrica",date:"Jue 18 Jun",time:"12:00"},
+  {id:"p04",group:"A",home:"México",away:"Rep. de Corea",date:"Jue 18 Jun",time:"21:00"},
+  {id:"p05",group:"A",home:"Chequia",away:"México",date:"Mié 24 Jun",time:"21:00"},
+  {id:"p06",group:"A",home:"Sudáfrica",away:"Rep. de Corea",date:"Mié 24 Jun",time:"21:00"},
+  // GRUPO B
+  {id:"p07",group:"B",home:"Canadá",away:"Bosnia y Herz.",date:"Vie 12 Jun",time:"15:00"},
+  {id:"p08",group:"B",home:"Catar",away:"Suiza",date:"Sáb 13 Jun",time:"15:00"},
+  {id:"p09",group:"B",home:"Canadá",away:"Catar",date:"Jue 18 Jun",time:"18:00"},
+  {id:"p10",group:"B",home:"Suiza",away:"Bosnia y Herz.",date:"Jue 18 Jun",time:"15:00"},
+  {id:"p11",group:"B",home:"Suiza",away:"Canadá",date:"Mié 24 Jun",time:"15:00"},
+  {id:"p12",group:"B",home:"Bosnia y Herz.",away:"Catar",date:"Mié 24 Jun",time:"15:00"},
+  // GRUPO C
+  {id:"p13",group:"C",home:"Brasil",away:"Marruecos",date:"Sáb 13 Jun",time:"18:00"},
+  {id:"p14",group:"C",home:"Haití",away:"Escocia",date:"Sáb 13 Jun",time:"21:00"},
+  {id:"p15",group:"C",home:"Escocia",away:"Marruecos",date:"Vie 19 Jun",time:"18:00"},
+  {id:"p16",group:"C",home:"Brasil",away:"Haití",date:"Vie 19 Jun",time:"21:00"},
+  {id:"p17",group:"C",home:"Escocia",away:"Brasil",date:"Mié 24 Jun",time:"18:00"},
+  {id:"p18",group:"C",home:"Marruecos",away:"Haití",date:"Mié 24 Jun",time:"18:00"},
+  // GRUPO D
+  {id:"p19",group:"D",home:"EE.UU.",away:"Paraguay",date:"Vie 12 Jun",time:"21:00"},
+  {id:"p20",group:"D",home:"Australia",away:"Turquía",date:"Sáb 13 Jun",time:"00:00"},
+  {id:"p21",group:"D",home:"EE.UU.",away:"Australia",date:"Vie 19 Jun",time:"15:00"},
+  {id:"p22",group:"D",home:"Turquía",away:"Paraguay",date:"Vie 19 Jun",time:"00:00"},
+  {id:"p23",group:"D",home:"Turquía",away:"EE.UU.",date:"Jue 25 Jun",time:"22:00"},
+  {id:"p24",group:"D",home:"Paraguay",away:"Australia",date:"Jue 25 Jun",time:"22:00"},
+  // GRUPO E
+  {id:"p25",group:"E",home:"Alemania",away:"Curazao",date:"Dom 14 Jun",time:"13:00"},
+  {id:"p26",group:"E",home:"Costa de Marfil",away:"Ecuador",date:"Dom 14 Jun",time:"19:00"},
+  {id:"p27",group:"E",home:"Alemania",away:"Costa de Marfil",date:"Sáb 20 Jun",time:"16:00"},
+  {id:"p28",group:"E",home:"Ecuador",away:"Curazao",date:"Sáb 20 Jun",time:"22:00"},
+  {id:"p29",group:"E",home:"Curazao",away:"Costa de Marfil",date:"Jue 25 Jun",time:"16:00"},
+  {id:"p30",group:"E",home:"Ecuador",away:"Alemania",date:"Jue 25 Jun",time:"16:00"},
+  // GRUPO F
+  {id:"p31",group:"F",home:"Países Bajos",away:"Japón",date:"Dom 14 Jun",time:"16:00"},
+  {id:"p32",group:"F",home:"Suecia",away:"Túnez",date:"Dom 14 Jun",time:"22:00"},
+  {id:"p33",group:"F",home:"Países Bajos",away:"Suecia",date:"Sáb 20 Jun",time:"13:00"},
+  {id:"p34",group:"F",home:"Túnez",away:"Japón",date:"Sáb 20 Jun",time:"00:00"},
+  {id:"p35",group:"F",home:"Japón",away:"Suecia",date:"Jue 25 Jun",time:"19:00"},
+  {id:"p36",group:"F",home:"Túnez",away:"Países Bajos",date:"Jue 25 Jun",time:"19:00"},
+  // GRUPO G
+  {id:"p37",group:"G",home:"Bélgica",away:"Egipto",date:"Lun 15 Jun",time:"15:00"},
+  {id:"p38",group:"G",home:"Irán",away:"Nueva Zelanda",date:"Lun 15 Jun",time:"21:00"},
+  {id:"p39",group:"G",home:"Bélgica",away:"Irán",date:"Dom 21 Jun",time:"15:00"},
+  {id:"p40",group:"G",home:"Nueva Zelanda",away:"Egipto",date:"Dom 21 Jun",time:"21:00"},
+  {id:"p41",group:"G",home:"Egipto",away:"Irán",date:"Vie 26 Jun",time:"23:00"},
+  {id:"p42",group:"G",home:"Nueva Zelanda",away:"Bélgica",date:"Vie 26 Jun",time:"23:00"},
+  // GRUPO H
+  {id:"p43",group:"H",home:"España",away:"Cabo Verde",date:"Lun 15 Jun",time:"12:00"},
+  {id:"p44",group:"H",home:"Arabia Saudí",away:"Uruguay",date:"Lun 15 Jun",time:"18:00"},
+  {id:"p45",group:"H",home:"España",away:"Arabia Saudí",date:"Dom 21 Jun",time:"12:00"},
+  {id:"p46",group:"H",home:"Uruguay",away:"Cabo Verde",date:"Dom 21 Jun",time:"18:00"},
+  {id:"p47",group:"H",home:"Cabo Verde",away:"Arabia Saudí",date:"Vie 26 Jun",time:"20:00"},
+  {id:"p48",group:"H",home:"Uruguay",away:"España",date:"Vie 26 Jun",time:"20:00"},
+  // GRUPO I
+  {id:"p49",group:"I",home:"Francia",away:"Senegal",date:"Mar 16 Jun",time:"15:00"},
+  {id:"p50",group:"I",home:"Irak",away:"Noruega",date:"Mar 16 Jun",time:"18:00"},
+  {id:"p51",group:"I",home:"Francia",away:"Irak",date:"Lun 22 Jun",time:"17:00"},
+  {id:"p52",group:"I",home:"Noruega",away:"Senegal",date:"Lun 22 Jun",time:"20:00"},
+  {id:"p53",group:"I",home:"Noruega",away:"Francia",date:"Vie 26 Jun",time:"15:00"},
+  {id:"p54",group:"I",home:"Senegal",away:"Irak",date:"Vie 26 Jun",time:"15:00"},
+  // GRUPO J
+  {id:"p55",group:"J",home:"Argentina",away:"Argelia",date:"Mar 16 Jun",time:"21:00"},
+  {id:"p56",group:"J",home:"Austria",away:"Jordania",date:"Mar 16 Jun",time:"00:00"},
+  {id:"p57",group:"J",home:"Argentina",away:"Austria",date:"Lun 22 Jun",time:"13:00"},
+  {id:"p58",group:"J",home:"Jordania",away:"Argelia",date:"Lun 22 Jun",time:"23:00"},
+  {id:"p59",group:"J",home:"Argelia",away:"Austria",date:"Sáb 27 Jun",time:"22:00"},
+  {id:"p60",group:"J",home:"Jordania",away:"Argentina",date:"Sáb 27 Jun",time:"22:00"},
+  // GRUPO K
+  {id:"p61",group:"K",home:"Portugal",away:"RD del Congo",date:"Mié 17 Jun",time:"13:00"},
+  {id:"p62",group:"K",home:"Uzbekistán",away:"Colombia",date:"Mié 17 Jun",time:"22:00"},
+  {id:"p63",group:"K",home:"Portugal",away:"Uzbekistán",date:"Mar 23 Jun",time:"13:00"},
+  {id:"p64",group:"K",home:"Colombia",away:"RD del Congo",date:"Mar 23 Jun",time:"22:00"},
+  {id:"p65",group:"K",home:"Colombia",away:"Portugal",date:"Sáb 27 Jun",time:"19:30"},
+  {id:"p66",group:"K",home:"RD del Congo",away:"Uzbekistán",date:"Sáb 27 Jun",time:"19:30"},
+  // GRUPO L
+  {id:"p67",group:"L",home:"Inglaterra",away:"Croacia",date:"Mié 17 Jun",time:"16:00"},
+  {id:"p68",group:"L",home:"Ghana",away:"Panamá",date:"Mié 17 Jun",time:"19:00"},
+  {id:"p69",group:"L",home:"Inglaterra",away:"Ghana",date:"Mar 23 Jun",time:"16:00"},
+  {id:"p70",group:"L",home:"Panamá",away:"Croacia",date:"Mar 23 Jun",time:"19:00"},
+  {id:"p71",group:"L",home:"Panamá",away:"Inglaterra",date:"Sáb 27 Jun",time:"17:00"},
+  {id:"p72",group:"L",home:"Croacia",away:"Ghana",date:"Sáb 27 Jun",time:"17:00"},
+];
+
+const FLAGS = {
+  "México":"🇲🇽","Sudáfrica":"🇿🇦","Rep. de Corea":"🇰🇷","Chequia":"🇨🇿",
+  "Canadá":"🇨🇦","Catar":"🇶🇦","Suiza":"🇨🇭","Bosnia y Herz.":"🇧🇦",
+  "Brasil":"🇧🇷","Marruecos":"🇲🇦","Escocia":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","Haití":"🇭🇹",
+  "EE.UU.":"🇺🇸","Paraguay":"🇵🇾","Australia":"🇦🇺","Turquía":"🇹🇷",
+  "Alemania":"🇩🇪","Ecuador":"🇪🇨","Costa de Marfil":"🇨🇮","Curazao":"🇨🇼",
+  "Países Bajos":"🇳🇱","Japón":"🇯🇵","Túnez":"🇹🇳","Suecia":"🇸🇪",
+  "Bélgica":"🇧🇪","Irán":"🇮🇷","Egipto":"🇪🇬","Nueva Zelanda":"🇳🇿",
+  "España":"🇪🇸","Uruguay":"🇺🇾","Arabia Saudí":"🇸🇦","Cabo Verde":"🇨🇻",
+  "Francia":"🇫🇷","Senegal":"🇸🇳","Noruega":"🇳🇴","Irak":"🇮🇶",
+  "Argentina":"🇦🇷","Argelia":"🇩🇿","Austria":"🇦🇹","Jordania":"🇯🇴",
+  "Portugal":"🇵🇹","Colombia":"🇨🇴","Uzbekistán":"🇺🇿","RD del Congo":"🇨🇩",
+  "Inglaterra":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","Croacia":"🇭🇷","Ghana":"🇬🇭","Panamá":"🇵🇦",
+};
+const flag = (t) => FLAGS[t] || "🏳️";
+
+// =====================================================================
+//  Estado de la aplicación
+// =====================================================================
+const state = {
+  user: null,            // { name }
+  view: "login",         // login | predict | board | admin
+  predictions: {},       // { match_id: { home, away } } del usuario actual
+  results: {},           // { match_id: { home, away } }
+  allUsers: [],          // [{ name }]
+  allPredictions: [],    // [{ user_name, match_id, home_score, away_score }]
+  activeGroup: "Octavos",
+  adminUnlocked: false,
+  adminTab: "results",        // results | users | picks | lock
+  adminSelectedUser: null,    // usuario seleccionado en admin → ver picks
+  lockedMatches: new Set(),   // IDs de partidos bloqueados (set)
+  compareWith: null,          // nombre del usuario a comparar
+  comparePredictions: {},     // { user_name: { match_id: { home, away } } }
+  compareLoading: null,
+  champion: null,             // equipo campeón elegido por usuario actual
+  allChampions: {},           // { user_name: team }
+  predictView: "date",        // siempre por fecha en octavos
+  configError: false,
+  sb: null,
+};
+
+// =====================================================================
+//  Inicialización Supabase
+// =====================================================================
+function initSupabase() {
+  if (!SUPABASE_URL || SUPABASE_URL.includes("TU_SUPABASE_URL")) {
+    state.configError = true;
+    return;
+  }
+  state.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+}
+
+// =====================================================================
+//  Hash simple SHA-256 para contraseñas
+// =====================================================================
+async function hashPass(pw) {
+  const buf = new TextEncoder().encode(pw + "mundial26-salt");
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// =====================================================================
+//  Scoring: 3 pts marcador exacto, 1 pt ganador correcto, 0 si falla
+// =====================================================================
+function calcPoints(pred, result) {
+  if (!pred || !result) return null;
+  const ph = parseInt(pred.home), pa = parseInt(pred.away);
+  const rh = parseInt(result.home), ra = parseInt(result.away);
+  if (isNaN(ph) || isNaN(pa) || isNaN(rh) || isNaN(ra)) return null;
+  if (ph === rh && pa === ra) return SCORING.EXACT;
+  const pw = ph > pa ? "h" : pa > ph ? "a" : "d";
+  const rw = rh > ra ? "h" : ra > rh ? "a" : "d";
+  return pw === rw ? SCORING.WINNER : 0;
+}
+
+// =====================================================================
+//  Toast
+// =====================================================================
+function toast(msg, type = "ok") {
+  const old = document.querySelector(".toast");
+  if (old) old.remove();
+  const el = document.createElement("div");
+  el.className = "toast" + (type === "error" ? " error" : "");
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
+function normalizePredictionRows(rows) {
+  const byUserMatch = {};
+  (rows || []).forEach(p => {
+    byUserMatch[`${p.user_name}::${p.match_id}`] = p;
+  });
+  return Object.values(byUserMatch);
+}
+
+// =====================================================================
+//  Carga de datos remota
+// =====================================================================
+async function loadAll() {
+  if (!state.sb) return;
+  try {
+    const userPredsQuery = state.user
+      ? state.sb
+          .from("predictions")
+          .select("*")
+          .eq("user_name", state.user.name)
+          .order("updated_at", { ascending: true })
+          .range(0, 200)
+      : Promise.resolve({ data: [] });
+
+    const [users, preds, userPreds, res, settings] = await Promise.all([
+      state.sb.from("users").select("name"),
+      state.sb.from("predictions").select("*", { count: "exact", head: false }).order("updated_at", { ascending: true }).range(0, 9999),
+      userPredsQuery,
+      state.sb.from("results").select("*"),
+      state.sb.from("settings").select("*"),
+    ]);
+    state.allUsers = users.data || [];
+    state.allPredictions = normalizePredictionRows(preds.data || []);
+    state.results = {};
+    (res.data || []).forEach(r => {
+      state.results[r.match_id] = { home: r.home_score, away: r.away_score };
+    });
+    // Estado del bloqueo individual de partidos
+    const settingsMap = {};
+    (settings.data || []).forEach(s => { settingsMap[s.key] = s.value; });
+    try {
+      const lockedArr = settingsMap.locked_matches ? JSON.parse(settingsMap.locked_matches) : [];
+      state.lockedMatches = new Set(lockedArr);
+    } catch (e) { state.lockedMatches = new Set(); }
+    // Compatibilidad con versión anterior: si había bloqueo global, migrar
+    if (settingsMap.predictions_locked === "1" && state.lockedMatches.size === 0) {
+      state.lockedMatches = new Set(MATCHES.map(m => m.id));
+    }
+    // Cargar picks de campeón de todos los usuarios
+    state.allChampions = {};
+    (settings.data || []).forEach(s => {
+      if (s.key.startsWith("champion_") || s.key === "__winner__") {
+        const user = s.key === "__winner__" ? "__winner__" : s.key.replace("champion_", "");
+        state.allChampions[user] = s.value;
+      }
+    });
+    if (state.user) {
+      state.champion = state.allChampions[state.user.name] || null;
+      state.predictions = {};
+      normalizePredictionRows(userPreds.data || [])
+        .forEach(p => {
+          state.predictions[p.match_id] = { home: p.home_score, away: p.away_score };
+        });
+    }
+  } catch (e) {
+    console.error(e);
+    toast("Error al cargar datos", "error");
+  }
+}
+
+async function loadComparePredictions(userName) {
+  if (!state.sb || !userName) return;
+  state.compareLoading = userName;
+  const { data, error } = await state.sb
+    .from("predictions")
+    .select("*")
+    .eq("user_name", userName)
+    .order("updated_at", { ascending: true })
+    .range(0, 200);
+
+  if (error) {
+    state.compareLoading = null;
+    toast("Error al cargar picks de " + userName + ": " + error.message, "error");
+    return;
+  }
+
+  const preds = {};
+  normalizePredictionRows(data || []).forEach(p => {
+    preds[p.match_id] = { home: p.home_score, away: p.away_score };
+  });
+  state.comparePredictions[userName] = preds;
+  state.compareLoading = null;
+
+  if (state.view === "compare" && state.compareWith === userName) renderCompare();
+}
+
+// =====================================================================
+//  Login / Registro
+// =====================================================================
+async function login(name, password) {
+  name = name.trim();
+  if (!name || !password) return toast("Completa nombre y contraseña", "error");
+  const hash = await hashPass(password);
+  const { data: existing } = await state.sb.from("users").select("*").eq("name", name).maybeSingle();
+  if (!existing) {
+    return toast("Usuario no encontrado. Pídele al admin que te cree una cuenta.", "error");
+  }
+  if (existing.pass_hash !== hash) return toast("Contraseña incorrecta", "error");
+  state.user = { name };
+  localStorage.setItem("mundial26_user", JSON.stringify(state.user));
+  await loadAll();
+  state.view = "predict";
+  render();
+  toast("¡Bienvenido " + name + "!");
+}
+
+function logout() {
+  state.user = null;
+  state.predictions = {};
+  state.adminUnlocked = false;
+  localStorage.removeItem("mundial26_user");
+  state.view = "login";
+  render();
+}
+
+// =====================================================================
+//  Guardar predicción de un partido
+// =====================================================================
+async function savePrediction(matchId) {
+  if (state.lockedMatches.has(matchId)) {
+    toast("🔒 Ese partido ya está bloqueado", "error");
+    return;
+  }
+  const p = state.predictions[matchId];
+  if (!p || p.home === "" || p.away === "" || p.home == null || p.away == null) return;
+  const h = parseInt(p.home), a = parseInt(p.away);
+  if (isNaN(h) || isNaN(a) || h < 0 || a < 0) return;
+  const payload = {
+    user_name: state.user.name,
+    match_id: matchId,
+    home_score: h,
+    away_score: a,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data: updatedRows, error: updateError } = await state.sb
+    .from("predictions")
+    .update(payload)
+    .eq("user_name", state.user.name)
+    .eq("match_id", matchId)
+    .select("user_name,match_id,home_score,away_score,updated_at");
+
+  if (updateError) return toast("Error al guardar: " + updateError.message, "error");
+
+  if (!updatedRows || updatedRows.length === 0) {
+    const { error: insertError } = await state.sb.from("predictions").insert(payload);
+    if (insertError) return toast("Error al guardar: " + insertError.message, "error");
+  }
+
+  const existingIndex = state.allPredictions.findIndex(row =>
+    row.user_name === state.user.name && row.match_id === matchId
+  );
+  const savedRow = { ...payload };
+  if (existingIndex >= 0) state.allPredictions[existingIndex] = savedRow;
+  else state.allPredictions.push(savedRow);
+}
+
+function setPredField(matchId, side, val) {
+  if (!state.predictions[matchId]) state.predictions[matchId] = { home: "", away: "" };
+  state.predictions[matchId][side] = val;
+}
+
+const predSaveTimers = {};
+
+function schedulePredictionSave(matchId) {
+  clearTimeout(predSaveTimers[matchId]);
+  predSaveTimers[matchId] = setTimeout(() => savePrediction(matchId), 300);
+}
+
+// =====================================================================
+//  Admin: guardar resultado real
+// =====================================================================
+async function saveResult(matchId, home, away) {
+  const h = parseInt(home), a = parseInt(away);
+  if (isNaN(h) || isNaN(a) || h < 0 || a < 0) return toast("Marcador inválido", "error");
+  const { error } = await state.sb.from("results").upsert({
+    match_id: matchId,
+    home_score: h,
+    away_score: a,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) return toast("Error: " + error.message, "error");
+  state.results[matchId] = { home: h, away: a };
+  // Auto-bloquear el partido al ingresar resultado
+  if (!state.lockedMatches.has(matchId)) {
+    state.lockedMatches.add(matchId);
+    await persistLockedMatches();
+  }
+  await refreshScoreData();
+  toast("✅ Resultado guardado y partido bloqueado");
+  renderAdmin();
+}
+
+async function persistLockedMatches() {
+  await state.sb.from("settings").upsert({
+    key: "locked_matches",
+    value: JSON.stringify(Array.from(state.lockedMatches)),
+  });
+}
+
+async function toggleMatchLock(matchId) {
+  if (state.lockedMatches.has(matchId)) {
+    state.lockedMatches.delete(matchId);
+    toast(`🔓 ${matchId} desbloqueado`);
+  } else {
+    state.lockedMatches.add(matchId);
+    toast(`🔒 ${matchId} bloqueado`);
+  }
+  await persistLockedMatches();
+  renderAdmin();
+}
+
+async function lockAllInGroup(g) {
+  MATCHES.filter(m => m.group === g).forEach(m => state.lockedMatches.add(m.id));
+  await persistLockedMatches();
+  toast(`🔒 Grupo ${g} completamente bloqueado`);
+  renderAdmin();
+}
+
+async function unlockAllInGroup(g) {
+  MATCHES.filter(m => m.group === g).forEach(m => state.lockedMatches.delete(m.id));
+  await persistLockedMatches();
+  toast(`🔓 Grupo ${g} completamente desbloqueado`);
+  renderAdmin();
+}
+
+async function lockAllByDate(dateStr) {
+  MATCHES.filter(m => m.date === dateStr).forEach(m => state.lockedMatches.add(m.id));
+  await persistLockedMatches();
+  toast(`🔒 Partidos del ${dateStr} bloqueados`);
+  renderAdmin();
+}
+
+window.onToggleMatchLock = toggleMatchLock;
+window.onLockAllInGroup = lockAllInGroup;
+window.onUnlockAllInGroup = unlockAllInGroup;
+window.onLockAllByDate = lockAllByDate;
+
+async function clearResult(matchId) {
+  if (!confirm("¿Borrar el resultado de este partido?")) return;
+  const { error } = await state.sb.from("results").delete().eq("match_id", matchId);
+  if (error) return toast("Error: " + error.message, "error");
+  delete state.results[matchId];
+  toast("Resultado borrado");
+  renderAdmin();
+}
+
+// =====================================================================
+//  Tabla de posiciones
+// =====================================================================
+function getLeaderboard() {
+  const totals = {};
+  state.allUsers.forEach(u => { totals[u.name] = 0; });
+  // Use comparePredictions cache (loaded per-user, no row limit) when available
+  state.allUsers.forEach(u => {
+    const userPreds = state.comparePredictions[u.name];
+    if (userPreds) {
+      Object.entries(userPreds).forEach(([matchId, pred]) => {
+        const r = state.results[matchId];
+        if (!r) return;
+        const pts = calcPoints(pred, r);
+        if (pts != null && pts > 0) totals[u.name] = (totals[u.name] || 0) + pts;
+      });
+    }
+  });
+  // Fallback: also count from allPredictions for users not yet in comparePredictions
+  state.allPredictions.forEach(p => {
+    if (state.comparePredictions[p.user_name]) return; // already counted above
+    const r = state.results[p.match_id];
+    if (!r) return;
+    const pts = calcPoints({ home: p.home_score, away: p.away_score }, r);
+    if (pts != null && pts > 0) totals[p.user_name] = (totals[p.user_name] || 0) + pts;
+  });
+  return Object.entries(totals)
+    .map(([name, pts]) => ({ name, pts }))
+    .sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
+}
+
+async function loadAllUserPredictions() {
+  if (!state.sb) return;
+  const users = state.allUsers.map(u => u.name);
+  // Load all users in parallel, 5 at a time
+  for (let i = 0; i < users.length; i += 5) {
+    const batch = users.slice(i, i + 5);
+    await Promise.all(batch.map(async (userName) => {
+      if (state.comparePredictions[userName]) return; // already cached
+      const { data } = await state.sb
+        .from("predictions")
+        .select("*")
+        .eq("user_name", userName)
+        .order("updated_at", { ascending: true })
+        .range(0, 200);
+      const preds = {};
+      normalizePredictionRows(data || []).forEach(p => {
+        preds[p.match_id] = { home: p.home_score, away: p.away_score };
+      });
+      state.comparePredictions[userName] = preds;
+    }));
+  }
+}
+
+function totalPointsForPredictions(preds) {
+  let total = 0;
+  Object.entries(preds || {}).forEach(([matchId, pred]) => {
+    const result = state.results[matchId];
+    if (!result) return;
+    const pts = calcPoints(pred, result);
+    if (pts != null && pts > 0) total += pts;
+  });
+  return total;
+}
+
+async function refreshScoreData() {
+  if (!state.sb) return;
+  const [preds, res] = await Promise.all([
+    state.sb
+      .from("predictions")
+      .select("*", { count: "exact", head: false })
+      .order("updated_at", { ascending: true })
+      .range(0, 9999),
+    state.sb.from("results").select("*"),
+  ]);
+
+  if (preds.error) return toast("Error al cargar predicciones: " + preds.error.message, "error");
+  if (res.error) return toast("Error al cargar resultados: " + res.error.message, "error");
+
+  state.allPredictions = normalizePredictionRows(preds.data || []);
+  state.results = {};
+  (res.data || []).forEach(r => {
+    state.results[r.match_id] = { home: r.home_score, away: r.away_score };
+  });
+  // Reload champion picks
+  const { data: champData } = await state.sb.from("settings").select("key,value").like("key","champion_%");
+  const { data: winnerData } = await state.sb.from("settings").select("value").eq("key","__winner__").maybeSingle();
+  state.allChampions = state.allChampions || {};
+  (champData || []).forEach(s => { state.allChampions[s.key.replace("champion_","")] = s.value; });
+  if (winnerData) state.allChampions["__winner__"] = winnerData.value;
+}
+
+// =====================================================================
+//  RENDER
+// =====================================================================
+function render() {
+  renderNav();
+  if (state.configError) return renderConfigError();
+  // El admin puede acceder sin tener usuario propio
+  if (state.view === "admin") return renderAdmin();
+  if (!state.user) return renderLogin();
+  if (state.view === "predict") return renderPredict();
+  if (state.view === "board") return renderBoard();
+  if (state.view === "compare") return renderCompare();
+  if (state.view === "elim") return renderElim();
+  if (state.view === "historial") return renderHistorial();
+}
+
+function renderNav() {
+  const nav = document.getElementById("nav");
+  if (!state.user) {
+    // Si está en admin sin usuario, dar opción de volver al login
+    if (state.view === "admin") {
+      nav.innerHTML = `<button onclick="exitAdmin()">⬅️ Volver al login</button>`;
+    } else {
+      nav.innerHTML = "";
+    }
+    return;
+  }
+  nav.innerHTML = `
+    <button class="${state.view==='predict'?'active':''}" onclick="go('predict')">🎯 Mis Picks</button>
+    <button class="${state.view==='board'?'active':''}" onclick="go('board')">🏆 Tabla</button>
+    <button class="${state.view==='compare'?'active':''}" onclick="go('compare')">🆚 Comparar</button>
+    <button class="${state.view==='elim'?'active':''}" onclick="go('elim')">🏅 Eliminatorias</button>
+    <button class="${state.view==='historial'?'active':''}" onclick="go('historial')">📋 Historial</button>
+    <button class="${state.view==='admin'?'active':''}" onclick="go('admin')">⚙️ Admin</button>
+    <span class="badge">${state.user.name}</span>
+    <button onclick="logout()">Salir</button>
+  `;
+}
+
+async function go(view) {
+  state.view = view;
+  if (view === "board") {
+    document.getElementById("app").innerHTML = `
+      <div class="card">
+        <h2>🏆 Tabla de posiciones</h2>
+        <p class="small center">Actualizando puntajes...</p>
+      </div>
+    `;
+    await refreshScoreData();
+    await loadAllUserPredictions();
+  }
+  if (view === "compare") {
+    await refreshScoreData();
+  }
+  if (view === "elim") {
+    document.getElementById("app").innerHTML = `
+      <div class="card">
+        <h2>🏅 Tabla Fase Eliminatorias</h2>
+        <p class="small center">Actualizando puntajes...</p>
+      </div>
+    `;
+    await refreshScoreData();
+    await loadAllUserPredictions();
+  }
+  if (view === "historial") {
+    document.getElementById("app").innerHTML = `
+      <div class="card">
+        <h2>📋 Historial Fase de Grupos</h2>
+        <p class="small center">Cargando picks de todos los participantes...</p>
+      </div>
+    `;
+    await refreshScoreData();
+    await loadAllUserPredictions();
+    await loadHistorialMatches();
+  }
+  render();
+}
+
+function renderConfigError() {
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <div class="config-warning">
+        ⚠️ Falta configurar Supabase
+      </div>
+      <p>Antes de usar la app necesitas conectarla a tu proyecto Supabase. Abre el archivo <code>index.html</code> y reemplaza estas dos líneas (cerca de la línea 230):</p>
+      <pre style="background:#000;padding:12px;border-radius:8px;overflow:auto;color:#facc15;">const SUPABASE_URL  = "https://TU_PROYECTO.supabase.co";
+const SUPABASE_ANON = "eyJhbGc...";</pre>
+      <p>Las consigues en <strong>supabase.com → Tu proyecto → Settings → API</strong>.</p>
+      <p>Lee el archivo <strong>INSTRUCCIONES.md</strong> para la guía completa paso a paso.</p>
+    </div>
+  `;
+}
+
+function renderLogin() {
+  document.getElementById("app").innerHTML = `
+    <div class="card" style="max-width:420px;margin:40px auto;">
+      <h1 style="text-align:center;">⚽ Mundial 2026</h1>
+      <p style="text-align:center;">Pronostica los 72 partidos de la fase de grupos.</p>
+      <div class="form-row">
+        <div>
+          <label for="loginName">Tu nombre</label>
+          <input type="text" id="loginName" placeholder="Tu nombre" autocomplete="username" />
+        </div>
+        <div>
+          <label for="loginPass">Contraseña</label>
+          <input type="password" id="loginPass" placeholder="••••••" autocomplete="current-password" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Entrar</button>
+      <p class="small center" style="margin-top:12px;">
+        🥇 Marcador exacto: <strong>3 pts</strong> · 🎯 Solo ganador: <strong>1 pt</strong><br/>
+        <span style="opacity:.7;">Si no tienes cuenta, pídesela al admin.</span>
+      </p>
+      <div style="text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
+        <button class="btn-secondary" onclick="go('admin')" style="font-size:13px;">⚙️ Acceso Admin</button>
+      </div>
+    </div>
+  `;
+  // Enter para enviar
+  document.getElementById("loginPass").addEventListener("keydown", e => {
+    if (e.key === "Enter") doLogin();
+  });
+}
+
+function doLogin() {
+  const name = document.getElementById("loginName").value;
+  const pass = document.getElementById("loginPass").value;
+  login(name, pass);
+}
+
+function renderMatchRow(m, opts = {}) {
+  // opts: { isAdmin: bool, showLockButton: bool }
+  const p = state.predictions[m.id] || { home: "", away: "" };
+  const r = state.results[m.id];
+  const pts = r ? calcPoints(p, r) : null;
+  const matchLocked = state.lockedMatches.has(m.id);
+  let badge = "";
+  if (r) {
+    const cls = pts === 3 ? "points-3" : pts === 1 ? "points-1" : "points-0";
+    const label = pts === 3 ? "🎯 Exacto +3" : pts === 1 ? "✓ Ganador +1" : "✗ Sin acierto";
+    badge = `<div class="match-points ${cls}">Resultado real: ${r.home}-${r.away} · ${label}</div>`;
+  } else if (matchLocked) {
+    badge = `<div class="match-points points-0">🔒 Bloqueado · esperando resultado</div>`;
+  }
+  const disabled = matchLocked ? "disabled" : "";
+  return `
+    <div class="match-row" style="${matchLocked ? 'opacity:0.85;border-left:3px solid #f87171;' : ''}">
+      <div class="match-team">
+        <span class="flag">${flag(m.home)}</span>
+        <span>${m.home}</span>
+      </div>
+      <div class="match-scores">
+        <input type="number" min="0" value="${p.home}" id="ph_${m.id}" ${disabled}
+          oninput="onPredInput('${m.id}','home',this.value)"
+          onchange="onPredChange('${m.id}','home',this.value)"
+          onblur="onPredChange('${m.id}','home',this.value)" />
+        <span>-</span>
+        <input type="number" min="0" value="${p.away}" id="pa_${m.id}" ${disabled}
+          oninput="onPredInput('${m.id}','away',this.value)"
+          onchange="onPredChange('${m.id}','away',this.value)"
+          onblur="onPredChange('${m.id}','away',this.value)" />
+      </div>
+      <div class="match-team away">
+        <span>${m.away}</span>
+        <span class="flag">${flag(m.away)}</span>
+      </div>
+      <div class="match-meta">📅 ${m.date} ${m.time} · 🏟️ ${m.stadium} · Grupo ${m.group}</div>
+      ${badge}
+    </div>
+  `;
+}
+
+// Sortkey numérico para ordenar por fecha (junio 2026)
+function dateSortKey(dateStr) {
+  const months = { "Jun": 6, "Jul": 7, "Ago": 8 };
+  const m = dateStr.match(/(\d+)\s+(\w+)/);
+  if (!m) return 9999;
+  return (months[m[2]] || 6) * 100 + parseInt(m[1]);
+}
+
+function renderPredict() {
+  // Agrupar por fecha (siempre)
+  const byDate = {};
+  MATCHES.forEach(m => {
+    if (!byDate[m.date]) byDate[m.date] = [];
+    byDate[m.date].push(m);
+  });
+  const sortedDates = Object.keys(byDate).sort((a, b) => dateSortKey(a) - dateSortKey(b));
+  const matchesHtml = sortedDates.map(d => `
+    <h3 style="margin-top:18px;color:#facc15;font-size:15px;">📅 ${d}</h3>
+    ${byDate[d].map(m => renderMatchRow(m)).join("")}
+  `).join("");
+
+  // Conteo
+  const total = MATCHES.length;
+  const totalPreds = Object.keys(state.predictions).filter(k => {
+    const p = state.predictions[k];
+    return p && p.home !== "" && p.away !== "" && p.home != null && p.away != null;
+  }).length;
+  const lockedCount = [...state.lockedMatches].filter(id => id !== "champion").length;
+
+  const lockBanner = state.lockedMatches.size > 0 ? `
+    <div style="background:rgba(220,38,38,0.1);border:1px solid #dc2626;color:#fca5a5;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:13px;text-align:center;">
+      🔒 Algunos partidos ya están bloqueados (no podrás editarlos)
+    </div>` : "";
+
+  // Campeón picker
+  const champLocked = state.lockedMatches.has("champion");
+  const myChamp = state.champion || "";
+  const sortedTeams = CHAMPION_TEAMS.slice().sort((a,b) => a.localeCompare(b));
+  const champOptions = sortedTeams.map(t =>
+    `<option value="${t}" ${myChamp===t?"selected":""}>${flag(t)} ${t}</option>`
+  ).join("");
+  const champPicker = `
+    <div style="background:#1e293b;border:2px solid ${myChamp?'#facc15':'#475569'};border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+      <div style="font-weight:700;color:#facc15;margin-bottom:6px;font-size:15px;">
+        🏆 Elige tu Campeón
+        <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px;">+${SCORING.CHAMPION} pts si aciertas</span>
+      </div>
+      ${champLocked
+        ? `<div style="color:#fca5a5;font-size:13px;">🔒 Bloqueado · tu pick: <strong>${myChamp ? flag(myChamp)+" "+myChamp : "ninguno"}</strong></div>`
+        : `<select onchange="onChampionChange(this.value)"
+              style="width:100%;background:#0f172a;color:#f1f5f9;border:1px solid #475569;border-radius:6px;padding:8px 10px;font-size:14px;margin-top:2px;">
+              <option value="">— Selecciona un equipo —</option>
+              ${champOptions}
+            </select>
+            ${myChamp ? `<div style="margin-top:6px;font-size:12px;color:#4ade80;">✓ Guardado: ${flag(myChamp)} ${myChamp}</div>` : ""}`
+      }
+    </div>
+  `;
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>🎯 Mis Predicciones — Octavos de Final</h2>
+      ${lockBanner}
+      ${champPicker}
+      <p class="small" style="margin-bottom:10px;">${totalPreds}/${total} partidos predichos · se guarda automático</p>
+      ${matchesHtml}
+    </div>
+  `;
+}
+
+function setPredView(v) { state.predictView = v; renderPredict(); }
+function setGroup(g) { state.activeGroup = g; renderPredict(); }
+window.setPredView = setPredView;
+
+window.onChampionChange = async function(team) {
+  state.champion = team;
+  if (!state.sb || !state.user || !team) return;
+  const { error } = await state.sb.from("settings").upsert({
+    key: "champion_" + state.user.name,
+    value: team,
+  });
+  if (error) return toast("Error al guardar campeón: " + error.message, "error");
+  if (!state.allChampions) state.allChampions = {};
+  state.allChampions[state.user.name] = team;
+  toast("🏆 Campeón guardado: " + flag(team) + " " + team);
+  renderPredict();
+};
+
+window.onPredInput = function(matchId, side, val) {
+  setPredField(matchId, side, val);
+  schedulePredictionSave(matchId);
+};
+
+window.onPredChange = async function(matchId, side, val) {
+  setPredField(matchId, side, val);
+  clearTimeout(predSaveTimers[matchId]);
+  await savePrediction(matchId);
+};
+
+function renderBoard() {
+  const board = getLeaderboard();
+  const elimBoard = getLeaderboardElim();
+  const elimMap = {};
+  elimBoard.forEach(r => { elimMap[r.name] = r.pts; });
+
+  const totalResults = Object.keys(state.results).length;
+  const totalMatches = MATCHES.length;
+  const realChamp = (state.allChampions && state.allChampions["__winner__"]) || null;
+
+  const champNote = realChamp
+    ? `<div style="background:rgba(250,204,21,0.1);border:1px solid #facc15;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;">🏆 Campeón: ${flag(realChamp)} <strong>${realChamp}</strong> · +${SCORING.CHAMPION} pts para quienes lo eligieron</div>`
+    : `<div style="color:#94a3b8;font-size:12px;margin-bottom:8px;">🏆 Campeón aún por definir — pick de cada participante se muestra debajo de su nombre</div>`;
+
+  const rows = board.map((row, i) => {
+    const rank = i + 1;
+    const rankCls = rank === 1 ? "gold" : rank === 2 ? "silver" : rank === 3 ? "bronze" : "";
+    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
+    const isMe = row.name === state.user.name ? "background:rgba(250,204,21,0.08);" : "";
+    const userChamp = state.allChampions && state.allChampions[row.name];
+    const champBadge = userChamp
+      ? `<span style="display:block;font-size:11px;color:${realChamp&&realChamp===userChamp?'#4ade80':'#94a3b8'};">${flag(userChamp)} ${userChamp}${realChamp===userChamp?' ✓':''}</span>`
+      : `<span style="display:block;font-size:11px;color:#64748b;">sin pick de campeón</span>`;
+    const elimPts = elimMap[row.name] || 0;
+    return `
+      <tr style="${isMe}">
+        <td class="rank ${rankCls}">${medal}</td>
+        <td>${row.name}${row.name===state.user.name?' <span class="badge">tú</span>':''}<br>${champBadge}</td>
+        <td style="text-align:right;font-weight:700;color:#facc15;">${row.pts}</td>
+        <td style="text-align:right;font-weight:700;color:#818cf8;">${elimPts}</td>
+      </tr>
+    `;
+  }).join("") || `<tr><td colspan="4" class="center small">Aún no hay usuarios registrados.</td></tr>`;
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>🏆 Tabla de posiciones</h2>
+      <p class="small">${totalResults}/${totalMatches} partidos con resultado oficial · ${state.allUsers.length} participantes</p>
+      ${champNote}
+      <table class="leaderboard">
+        <thead>
+          <tr><th>#</th><th>Participante</th><th style="text-align:right;">Pts Grupos</th><th style="text-align:right;color:#818cf8;">Pts Elim.</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function getLeaderboardElim() {
+  // Solo partidos de la fase eliminatoria (IDs r01-r16)
+  const elimIds = new Set(MATCHES.map(m => m.id));
+  const totals = {};
+  state.allUsers.forEach(u => { totals[u.name] = 0; });
+
+  state.allUsers.forEach(u => {
+    const userPreds = state.comparePredictions[u.name];
+    if (userPreds) {
+      Object.entries(userPreds).forEach(([matchId, pred]) => {
+        if (!elimIds.has(matchId)) return;
+        const r = state.results[matchId];
+        if (!r) return;
+        const pts = calcPoints(pred, r);
+        if (pts != null && pts > 0) totals[u.name] = (totals[u.name] || 0) + pts;
+      });
+    }
+  });
+  // Fallback for users not in comparePredictions
+  state.allPredictions.forEach(p => {
+    if (state.comparePredictions[p.user_name]) return;
+    if (!elimIds.has(p.match_id)) return;
+    const r = state.results[p.match_id];
+    if (!r) return;
+    const pts = calcPoints({ home: p.home_score, away: p.away_score }, r);
+    if (pts != null && pts > 0) totals[p.user_name] = (totals[p.user_name] || 0) + pts;
+  });
+
+  return Object.entries(totals)
+    .map(([name, pts]) => ({ name, pts }))
+    .sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
+}
+
+function renderElim() {
+  const board = getLeaderboardElim();
+  const elimIds = new Set(MATCHES.map(m => m.id));
+  const totalResults = Object.keys(state.results).filter(id => elimIds.has(id)).length;
+  const totalMatches = MATCHES.length;
+
+  const rows = board.map((row, i) => {
+    const rank = i + 1;
+    const rankCls = rank === 1 ? "gold" : rank === 2 ? "silver" : rank === 3 ? "bronze" : "";
+    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
+    const isMe = row.name === state.user.name ? "background:rgba(250,204,21,0.08);" : "";
+    return `
+      <tr style="${isMe}">
+        <td class="rank ${rankCls}">${medal}</td>
+        <td>${row.name}${row.name === state.user.name ? ' <span class="badge">tú</span>' : ''}</td>
+        <td style="text-align:right;font-weight:700;color:#facc15;">${row.pts}</td>
+      </tr>
+    `;
+  }).join("") || `<tr><td colspan="3" class="center small">Aún no hay usuarios registrados.</td></tr>`;
+
+  const myRow = board.find(r => r.name === state.user.name);
+  const myRank = myRow ? board.indexOf(myRow) + 1 : null;
+  const myPts = myRow ? myRow.pts : 0;
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>🏅 Tabla Fase Eliminatorias</h2>
+      <p class="small" style="margin-bottom:8px;">${totalResults}/${totalMatches} partidos con resultado · ${state.allUsers.length} participantes · solo octavos en adelante</p>
+      <div style="background:rgba(250,204,21,0.06);border:1px solid rgba(250,204,21,0.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#fde68a;">
+        ⚽ Puntos aquí son <strong>independientes</strong> de la tabla de grupos — todos arrancan desde 0.
+      </div>
+      ${myRow ? `<div style="background:rgba(250,204,21,0.08);border:1px solid rgba(250,204,21,0.25);border-radius:8px;padding:8px 14px;margin-bottom:12px;text-align:center;font-size:14px;">
+        Vos: <strong>${myPts} pts</strong> · Posición <strong>#${myRank}</strong> de ${state.allUsers.length}
+      </div>` : ""}
+      <table class="leaderboard">
+        <thead>
+          <tr><th>#</th><th>Participante</th><th style="text-align:right;">Pts Eliminatorias</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function totalPointsForPredictionsFiltered(preds, matchIds) {
+  let total = 0;
+  Object.entries(preds || {}).forEach(([matchId, pred]) => {
+    if (matchIds && !matchIds.has(matchId)) return;
+    const result = state.results[matchId];
+    if (!result) return;
+    const pts = calcPoints(pred, result);
+    if (pts != null && pts > 0) total += pts;
+  });
+  return total;
+}
+
+function renderCompare() {
+  // Lista de usuarios disponibles para comparar (todos menos el actual)
+  const otherUsers = state.allUsers.filter(u => u.name !== state.user.name);
+  if (!state.compareMode) state.compareMode = "grupos"; // "grupos" | "elim"
+
+  if (otherUsers.length === 0) {
+    document.getElementById("app").innerHTML = `
+      <div class="card">
+        <h2>🆚 Comparar contra otro participante</h2>
+        <p>Todavía no hay otros participantes registrados para comparar. Pídele al admin que cree más usuarios.</p>
+      </div>
+    `;
+    return;
+  }
+
+  if (!state.compareWith || !otherUsers.find(u => u.name === state.compareWith)) {
+    state.compareWith = otherUsers[0].name;
+  }
+  const otherName = state.compareWith;
+  const isElim = state.compareMode === "elim";
+
+  if (!state.comparePredictions[otherName] && state.compareLoading !== otherName) {
+    loadComparePredictions(otherName);
+  }
+
+  const otherPreds = state.comparePredictions[otherName] || {};
+  const compareLoadingBanner = state.compareLoading === otherName ? `
+    <div style="background:rgba(250,204,21,0.1);border:1px solid #facc15;color:#fde68a;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:13px;text-align:center;">
+      Cargando picks de ${otherName}...
+    </div>` : "";
+
+  // Filter matches by mode
+  const elimIds = new Set(MATCHES.map(m => m.id));
+  const filterIds = isElim ? elimIds : null;
+  const matchList = MATCHES; // same matches either way for now
+
+  const myTotalShown = totalPointsForPredictionsFiltered(state.predictions, filterIds);
+  const otherTotalShown = totalPointsForPredictionsFiltered(otherPreds, filterIds);
+
+  // Lista de partidos agrupados por fecha
+  const byDate = {};
+  matchList.forEach(m => {
+    if (!byDate[m.date]) byDate[m.date] = [];
+    byDate[m.date].push(m);
+  });
+  const sortedDates = Object.keys(byDate).sort((a, b) => dateSortKey(a) - dateSortKey(b));
+
+  const dateSections = sortedDates.map(d => {
+    const rows = byDate[d].map(m => {
+      const myP = state.predictions[m.id];
+      const otherP = otherPreds[m.id];
+      const r = state.results[m.id];
+      const myPText = myP && myP.home !== "" && myP.home != null ? `${myP.home}-${myP.away}` : "—";
+      const otherPText = otherP ? `${otherP.home}-${otherP.away}` : "—";
+      let myPts = "", otherPts = "";
+      if (r) {
+        if (myP) {
+          const pts = calcPoints(myP, r);
+          if (pts != null) { myPts = pts > 0 ? ` +${pts}` : ""; }
+        }
+        if (otherP) {
+          const pts = calcPoints(otherP, r);
+          if (pts != null) { otherPts = pts > 0 ? ` +${pts}` : ""; }
+        }
+      }
+      const sameAsMe = myP && otherP && myP.home == otherP.home && myP.away == otherP.away;
+      const realScore = r ? `<span class="small" style="opacity:.6;">real: ${r.home}-${r.away}</span>` : '';
+      return `
+        <div style="display:grid;grid-template-columns:1fr 70px 1fr;align-items:center;gap:8px;padding:6px 10px;background:rgba(0,0,0,0.2);border-radius:6px;margin-bottom:4px;font-size:13px;${sameAsMe?'border-left:3px solid #facc15;':''}">
+          <div style="text-align:right;">
+            <div>${flag(m.home)} ${m.home} <strong>vs</strong> ${m.away} ${flag(m.away)}</div>
+            <div class="small" style="opacity:.5;">${m.group} · ${realScore}</div>
+          </div>
+          <div style="text-align:center;font-weight:700;">
+            <div style="color:#facc15;">${myPText}<span style="color:#4ade80;">${myPts}</span></div>
+            <div class="small">vs</div>
+            <div style="color:#94a3b8;">${otherPText}<span style="color:#4ade80;">${otherPts}</span></div>
+          </div>
+          <div>
+            ${sameAsMe ? '<span class="badge">🟰 igual</span>' : ''}
+          </div>
+        </div>
+      `;
+    }).join("");
+    return `
+      <h3 style="margin-top:14px;">📅 ${d}</h3>
+      ${rows}
+    `;
+  }).join("");
+
+  const userOptions = otherUsers
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(u => `<option value="${u.name}" ${u.name===otherName?'selected':''}>${u.name}</option>`)
+    .join("");
+
+  const accentColor = isElim ? "#818cf8" : "#facc15";
+  const modeLabel = isElim ? "🏅 Eliminatorias" : "🏆 Fase de Grupos";
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>🆚 Comparar contra otro participante</h2>
+      ${compareLoadingBanner}
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button onclick="setCompareMode('grupos')" style="flex:1;padding:8px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid ${!isElim?'#facc15':'rgba(255,255,255,0.15)'};background:${!isElim?'rgba(250,204,21,0.15)':'rgba(255,255,255,0.05)'};color:${!isElim?'#facc15':'#94a3b8'};">🏆 Grupos</button>
+        <button onclick="setCompareMode('elim')" style="flex:1;padding:8px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid ${isElim?'#818cf8':'rgba(255,255,255,0.15)'};background:${isElim?'rgba(129,140,248,0.15)':'rgba(255,255,255,0.05)'};color:${isElim?'#818cf8':'#94a3b8'};">🏅 Eliminatorias</button>
+      </div>
+      <div style="background:rgba(0,0,0,0.3);padding:14px;border-radius:8px;margin-bottom:16px;">
+        <label>Comparar mis picks contra:</label>
+        <select id="compareSelect" onchange="onCompareChange(this.value)" style="margin-top:4px;">
+          ${userOptions}
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;text-align:center;">
+        <div style="background:rgba(250,204,21,0.1);padding:12px;border-radius:8px;border:1px solid ${accentColor};">
+          <div class="small">Tú · ${state.user.name}</div>
+          <div style="font-size:24px;font-weight:800;color:${accentColor};">${myTotalShown} pts</div>
+          <div class="small" style="color:#64748b;">${modeLabel}</div>
+        </div>
+        <div style="background:rgba(148,163,184,0.1);padding:12px;border-radius:8px;border:1px solid #94a3b8;">
+          <div class="small">${otherName}</div>
+          <div style="font-size:24px;font-weight:800;color:#94a3b8;">${otherTotalShown} pts</div>
+          <div class="small" style="color:#64748b;">${modeLabel}</div>
+        </div>
+      </div>
+      <p class="small">Las filas con borde amarillo significan que ambos tienen el mismo pick.</p>
+      ${dateSections}
+    </div>
+  `;
+}
+
+function setCompareMode(mode) {
+  state.compareMode = mode;
+  renderCompare();
+}
+window.setCompareMode = setCompareMode;
+
+function onCompareChange(name) {
+  state.compareWith = name;
+  renderCompare();
+  loadComparePredictions(name);
+}
+window.onCompareChange = onCompareChange;
+
+// =====================================================================
+//  Carga partidos históricos desde Supabase para el Historial
+// =====================================================================
+async function loadHistorialMatches() {
+  // GRUPOS_MATCHES is hardcoded — always available, no Supabase call needed
+  state.historialMatches = GRUPOS_MATCHES;
+}
+
+// =====================================================================
+//  HISTORIAL FASE DE GRUPOS
+// =====================================================================
+function renderHistorial() {
+  if (!state.historialTab) state.historialTab = "partidos";
+
+  const tabs = `
+    <div class="group-tabs" style="margin-bottom:16px;">
+      <button class="${state.historialTab==='partidos'?'active':''}" onclick="setHistorialTab('partidos')">⚽ Por Partido</button>
+      <button class="${state.historialTab==='usuario'?'active':''}" onclick="setHistorialTab('usuario')">👤 Por Usuario</button>
+    </div>
+  `;
+
+  if (state.historialTab === "partidos") renderHistorialPartidos(tabs);
+  else renderHistorialUsuario(tabs);
+}
+window.setHistorialTab = function(t) { state.historialTab = t; renderHistorial(); };
+
+function ptsBadge(pts) {
+  if (pts === null || pts === undefined) return '<span style="color:#475569;">—</span>';
+  if (pts === 3) return '<span style="background:#166534;color:#4ade80;padding:1px 5px;border-radius:4px;font-weight:700;font-size:11px;">+3</span>';
+  if (pts === 1) return '<span style="background:#1e3a5f;color:#60a5fa;padding:1px 5px;border-radius:4px;font-weight:700;font-size:11px;">+1</span>';
+  return '<span style="color:#ef4444;font-size:11px;">0</span>';
+}
+
+function renderHistorialPartidos(tabs) {
+  // Group matches by date (all MATCHES — fase de grupos)
+  const ALL_HIST_MATCHES = state.historialMatches && state.historialMatches.length ? state.historialMatches : GRUPOS_MATCHES;
+  const users = state.allUsers.map(u => u.name).sort((a,b) => a.localeCompare(b));
+  const byDate = {};
+  ALL_HIST_MATCHES.forEach(m => {
+    if (!byDate[m.date]) byDate[m.date] = [];
+    byDate[m.date].push(m);
+  });
+  const sortedDates = Object.keys(byDate).sort((a,b) => dateSortKey(a) - dateSortKey(b));
+
+  // Build table: rows = matches, cols = users
+  const colHeaders = users.map(u => `<th style="font-size:10px;color:#94a3b8;text-align:center;padding:4px 3px;white-space:nowrap;">${u}</th>`).join("");
+
+  const dateBlocks = sortedDates.map(d => {
+    const matchRows = byDate[d].map(m => {
+      const r = state.results[m.id];
+      const realStr = r ? `<span style="color:#4ade80;font-weight:700;">${r.home}-${r.away}</span>` : '<span style="color:#475569;">—</span>';
+      const matchLabel = `${flag(m.home)} ${m.home} <strong>vs</strong> ${m.away} ${flag(m.away)}`;
+      const userCells = users.map(u => {
+        const preds = state.comparePredictions[u] || {};
+        const p = preds[m.id];
+        if (!p || (p.home === "" || p.home == null)) {
+          return '<td style="text-align:center;padding:3px;"><span style="color:#334155;font-size:10px;">—</span></td>';
+        }
+        const pts = r ? calcPoints(p, r) : null;
+        const pickStr = `${p.home}-${p.away}`;
+        const bgColor = pts === 3 ? 'rgba(74,222,128,0.08)' : pts === 1 ? 'rgba(96,165,250,0.08)' : pts === 0 ? 'rgba(239,68,68,0.05)' : '';
+        return `<td style="text-align:center;padding:3px;background:${bgColor};">
+          <div style="font-size:11px;color:#f1f5f9;font-weight:600;">${pickStr}</div>
+          <div>${ptsBadge(pts)}</div>
+        </td>`;
+      }).join("");
+
+      return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+        <td style="padding:5px 8px;white-space:nowrap;min-width:200px;">
+          <div style="font-size:12px;">${matchLabel}</div>
+          <div style="font-size:11px;color:#94a3b8;">${realStr}</div>
+        </td>
+        ${userCells}
+      </tr>`;
+    }).join("");
+
+    return `
+      <tr style="background:rgba(250,204,21,0.08);">
+        <td colspan="${users.length+1}" style="padding:6px 8px;font-size:12px;font-weight:700;color:#fde68a;">📅 ${d}</td>
+      </tr>
+      ${matchRows}
+    `;
+  }).join("");
+
+  // Legend
+  const legend = `<div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;font-size:12px;align-items:center;">
+    <span>Leyenda:</span>
+    ${ptsBadge(3)} <span style="color:#94a3b8;">Exacto (3pts)</span>
+    ${ptsBadge(1)} <span style="color:#94a3b8;">Ganador/empate (1pt)</span>
+    ${ptsBadge(0)} <span style="color:#94a3b8;">Incorrecto (0pts)</span>
+    <span style="color:#475569;">— Sin pick / sin resultado</span>
+  </div>`;
+
+  document.getElementById("app").innerHTML = `
+    <div class="card" style="padding:16px;">
+      <h2>📋 Historial Fase de Grupos</h2>
+      <p class="small" style="margin-bottom:12px;">${Object.keys(state.results).length} partidos con resultado · ${users.length} participantes · Podés desplazarte horizontalmente</p>
+      ${tabs}
+      ${legend}
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="border-bottom:2px solid rgba(250,204,21,0.3);">
+              <th style="text-align:left;padding:6px 8px;color:#fde68a;min-width:200px;">Partido</th>
+              ${colHeaders}
+            </tr>
+          </thead>
+          <tbody>${dateBlocks}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderHistorialUsuario(tabs) {
+  const users = state.allUsers.map(u => u.name).sort((a,b) => a.localeCompare(b));
+  if (!state.historialUser) state.historialUser = state.user ? state.user.name : users[0];
+  const selUser = state.historialUser;
+
+  const ALL_HIST_MATCHES = state.historialMatches && state.historialMatches.length ? state.historialMatches : GRUPOS_MATCHES;
+  const preds = state.comparePredictions[selUser] || {};
+
+  // Calc totals
+  let total = 0, exact = 0, direction = 0, wrong = 0, pending = 0;
+  ALL_HIST_MATCHES.forEach(m => {
+    const p = preds[m.id];
+    const r = state.results[m.id];
+    if (!r) { pending++; return; }
+    if (!p || p.home === "" || p.home == null) { pending++; return; }
+    const pts = calcPoints(p, r);
+    total += pts || 0;
+    if (pts === 3) exact++;
+    else if (pts === 1) direction++;
+    else wrong++;
+  });
+
+  const byDate = {};
+  ALL_HIST_MATCHES.forEach(m => {
+    if (!byDate[m.date]) byDate[m.date] = [];
+    byDate[m.date].push(m);
+  });
+  const sortedDates = Object.keys(byDate).sort((a,b) => dateSortKey(a) - dateSortKey(b));
+
+  const userOptions = users.map(u =>
+    `<option value="${u}" ${u===selUser?'selected':''}>${u}</option>`
+  ).join("");
+
+  const dateBlocks = sortedDates.map(d => {
+    const rows = byDate[d].map(m => {
+      const p = preds[m.id];
+      const r = state.results[m.id];
+      const pickStr = (p && p.home !== "" && p.home != null) ? `${p.home}-${p.away}` : '—';
+      const realStr = r ? `${r.home}-${r.away}` : '—';
+      const pts = (r && p && p.home !== "" && p.home != null) ? calcPoints(p, r) : null;
+      const bgColor = pts === 3 ? 'rgba(74,222,128,0.06)' : pts === 1 ? 'rgba(96,165,250,0.06)' : pts === 0 ? 'rgba(239,68,68,0.04)' : '';
+
+      return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);background:${bgColor};">
+        <td style="padding:6px 10px;font-size:12px;min-width:180px;">
+          ${flag(m.home)} ${m.home} <strong>vs</strong> ${m.away} ${flag(m.away)}
+        </td>
+        <td style="text-align:center;padding:6px;font-size:13px;font-weight:700;color:#f1f5f9;">${pickStr}</td>
+        <td style="text-align:center;padding:6px;font-size:13px;font-weight:700;color:${r?'#4ade80':'#475569'};">${realStr}</td>
+        <td style="text-align:center;padding:6px;">${ptsBadge(pts)}</td>
+      </tr>`;
+    }).join("");
+
+    return `
+      <tr style="background:rgba(250,204,21,0.08);">
+        <td colspan="4" style="padding:5px 10px;font-size:12px;font-weight:700;color:#fde68a;">📅 ${d}</td>
+      </tr>
+      ${rows}
+    `;
+  }).join("");
+
+  document.getElementById("app").innerHTML = `
+    <div class="card" style="padding:16px;">
+      <h2>📋 Historial Fase de Grupos</h2>
+      ${tabs}
+      <div style="background:rgba(0,0,0,0.3);padding:12px 14px;border-radius:8px;margin-bottom:14px;">
+        <label style="font-size:13px;color:#94a3b8;">Ver picks de:</label>
+        <select style="margin-top:4px;" onchange="setHistorialUser(this.value)">${userOptions}</select>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;text-align:center;">
+        <div style="background:rgba(250,204,21,0.1);border:1px solid #facc15;border-radius:8px;padding:10px;">
+          <div style="font-size:20px;font-weight:800;color:#facc15;">${total}</div>
+          <div style="font-size:11px;color:#94a3b8;">pts totales</div>
+        </div>
+        <div style="background:rgba(74,222,128,0.1);border:1px solid #4ade80;border-radius:8px;padding:10px;">
+          <div style="font-size:20px;font-weight:800;color:#4ade80;">${exact}</div>
+          <div style="font-size:11px;color:#94a3b8;">exactos (+3)</div>
+        </div>
+        <div style="background:rgba(96,165,250,0.1);border:1px solid #60a5fa;border-radius:8px;padding:10px;">
+          <div style="font-size:20px;font-weight:800;color:#60a5fa;">${direction}</div>
+          <div style="font-size:11px;color:#94a3b8;">dirección (+1)</div>
+        </div>
+        <div style="background:rgba(239,68,68,0.1);border:1px solid #ef4444;border-radius:8px;padding:10px;">
+          <div style="font-size:20px;font-weight:800;color:#ef4444;">${wrong}</div>
+          <div style="font-size:11px;color:#94a3b8;">incorrectos</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="border-bottom:2px solid rgba(250,204,21,0.3);">
+              <th style="text-align:left;padding:6px 10px;color:#fde68a;">Partido</th>
+              <th style="text-align:center;padding:6px;color:#fde68a;">Pick</th>
+              <th style="text-align:center;padding:6px;color:#4ade80;">Resultado real</th>
+              <th style="text-align:center;padding:6px;color:#fde68a;">Pts</th>
+            </tr>
+          </thead>
+          <tbody>${dateBlocks}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+window.setHistorialUser = function(u) { state.historialUser = u; renderHistorialUsuario(''); renderHistorial(); };
+
+function renderAdmin() {
+  if (!state.adminUnlocked) {
+    document.getElementById("app").innerHTML = `
+      <div class="card" style="max-width:420px;margin:40px auto;">
+        <h2>⚙️ Panel Admin</h2>
+        <p>Ingresa la contraseña de admin para cargar los resultados oficiales de los partidos.</p>
+        <div class="form-row">
+          <div>
+            <label>Contraseña de admin</label>
+            <input type="password" id="adminPw" placeholder="••••••" />
+          </div>
+        </div>
+        <button class="btn-primary" onclick="unlockAdmin()">Desbloquear</button>
+      </div>
+    `;
+    document.getElementById("adminPw").addEventListener("keydown", e => {
+      if (e.key === "Enter") unlockAdmin();
+    });
+    return;
+  }
+
+  // Sub-tabs del panel admin
+  const subTabs = `
+    <div class="group-tabs" style="margin-bottom:20px;">
+      <button class="${state.adminTab==='results'?'active':''}" onclick="setAdminTab('results')">📊 Resultados</button>
+      <button class="${state.adminTab==='users'?'active':''}" onclick="setAdminTab('users')">👥 Usuarios</button>
+      <button class="${state.adminTab==='picks'?'active':''}" onclick="setAdminTab('picks')">🔍 Ver Picks</button>
+      <button class="${state.adminTab==='lock'?'active':''}" onclick="setAdminTab('lock')">${state.predictionsLocked ? '🔒' : '🔓'} Bloqueo</button>
+    </div>
+  `;
+
+  if (state.adminTab === "users") return renderAdminUsers(subTabs);
+  if (state.adminTab === "lock") return renderAdminLock(subTabs);
+  if (state.adminTab === "picks") return renderAdminPicks(subTabs);
+  return renderAdminResults(subTabs);
+}
+
+function renderAdminResults(subTabs) {
+  const byDate = {};
+  MATCHES.forEach(m => {
+    if (!byDate[m.date]) byDate[m.date] = [];
+    byDate[m.date].push(m);
+  });
+  const sortedDates = Object.keys(byDate).sort((a, b) => dateSortKey(a) - dateSortKey(b));
+
+  const matchRows = sortedDates.map(d => {
+    const rows = byDate[d].map(m => {
+      const r = state.results[m.id] || { home: "", away: "" };
+      const isLocked = state.lockedMatches.has(m.id);
+      return `
+        <div class="match-row" style="${isLocked ? 'border-left:3px solid #f87171;' : ''}">
+          <div class="match-team"><span class="flag">${flag(m.home)}</span><span>${m.home}</span></div>
+          <div class="match-scores">
+            <input type="number" min="0" value="${r.home}" id="rh_${m.id}" style="width:54px;" />
+            <span>-</span>
+            <input type="number" min="0" value="${r.away}" id="ra_${m.id}" style="width:54px;" />
+          </div>
+          <div class="match-team away"><span>${m.away}</span><span class="flag">${flag(m.away)}</span></div>
+          <div class="match-meta">
+            🕐 ${m.time}
+            <button class="btn-secondary" style="margin-left:8px;padding:4px 10px;" onclick="onSaveResult('${m.id}')">💾 Guardar</button>
+            <button class="btn-secondary" style="margin-left:4px;padding:4px 10px;${isLocked?'background:#f87171;color:#0f172a;border-color:#f87171;':''}"
+              onclick="onToggleMatchLock('${m.id}')">${isLocked ? '🔒' : '🔓'}</button>
+            ${state.results[m.id] ? `<button class="btn-secondary" style="margin-left:4px;padding:4px 10px;background:#7f1d1d;border-color:#991b1b;" onclick="clearResult('${m.id}')">🗑️</button>` : ''}
+          </div>
+        </div>`;
+    }).join("");
+    return `<h3 style="margin-top:18px;color:#facc15;font-size:14px;">📅 ${d}</h3>${rows}`;
+  }).join("");
+
+  // Campeón real
+  const realChamp = (state.allChampions && state.allChampions["__winner__"]) || "";
+  const sortedTeams = CHAMPION_TEAMS.slice().sort((a,b) => a.localeCompare(b));
+  const champOpts = sortedTeams.map(t => `<option value="${t}" ${realChamp===t?"selected":""}>${flag(t)} ${t}</option>`).join("");
+  const champBox = `
+    <div style="background:#1e293b;border:2px solid #facc15;border-radius:10px;padding:14px 16px;margin-bottom:18px;">
+      <div style="font-weight:700;color:#facc15;margin-bottom:6px;font-size:15px;">🏆 Campeón Real del Mundial</div>
+      <div class="small" style="margin-bottom:10px;">Cuando terminen las finales, selecciona el campeón. Dará +${SCORING.CHAMPION} pts a quienes lo acertaron.</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <select id="real_champ_select" style="flex:1;min-width:160px;background:#0f172a;color:#f1f5f9;border:1px solid #475569;border-radius:6px;padding:8px 10px;font-size:14px;">
+          <option value="">— Sin definir aún —</option>
+          ${champOpts}
+        </select>
+        <button class="btn-primary" style="padding:8px 16px;" onclick="onSaveRealChampion()">💾 Guardar</button>
+        ${realChamp ? `<span style="color:#4ade80;font-size:13px;">✓ ${flag(realChamp)} ${realChamp}</span>` : ""}
+      </div>
+    </div>`;
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>⚙️ Admin</h2>
+      ${subTabs}
+      <h3>📊 Resultados — Octavos de Final</h3>
+      ${champBox}
+      ${matchRows}
+    </div>
+  `;
+}
+
+window.onSaveRealChampion = async function() {
+  const team = document.getElementById("real_champ_select")?.value;
+  if (!team) return toast("Elige un equipo primero", "error");
+  const { error } = await state.sb.from("settings").upsert({ key: "__winner__", value: team });
+  if (error) return toast("Error: " + error.message, "error");
+  if (!state.allChampions) state.allChampions = {};
+  state.allChampions["__winner__"] = team;
+  toast("🏆 Campeón guardado: " + flag(team) + " " + team);
+  renderAdmin();
+};
+
+
+function renderAdminUsers(subTabs) {
+  // Calcular cuántas predicciones tiene cada usuario y sus puntos
+  const stats = {};
+  state.allUsers.forEach(u => {
+    stats[u.name] = { preds: 0, pts: 0 };
+  });
+  state.allPredictions.forEach(p => {
+    if (!stats[p.user_name]) stats[p.user_name] = { preds: 0, pts: 0 };
+    stats[p.user_name].preds++;
+    const r = state.results[p.match_id];
+    if (r) {
+      const pts = calcPoints({ home: p.home_score, away: p.away_score }, r);
+      if (pts) stats[p.user_name].pts += pts;
+    }
+  });
+
+  const usersHtml = state.allUsers.length === 0
+    ? `<p class="small center">No hay usuarios registrados aún.</p>`
+    : state.allUsers
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(u => {
+          const s = stats[u.name] || { preds: 0, pts: 0 };
+          return `
+            <div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:14px;margin-bottom:10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                <div>
+                  <div style="font-weight:700;font-size:16px;">${u.name}</div>
+                  <div class="small">${s.preds}/${MATCHES.length} predicciones · ${s.pts} pts</div>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button class="btn-secondary" style="padding:6px 12px;font-size:13px;"
+                    onclick="onResetPassword('${u.name.replace(/'/g, "\\'")}')">🔑 Reset clave</button>
+                  <button class="btn-secondary" style="padding:6px 12px;font-size:13px;background:#7f1d1d;border-color:#991b1b;"
+                    onclick="onDeleteUser('${u.name.replace(/'/g, "\\'")}')">🗑️ Eliminar</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>⚙️ Admin</h2>
+      ${subTabs}
+
+      <h3>➕ Crear nuevo usuario</h3>
+      <p class="small">Solo tú puedes crear participantes. Asígnale a cada uno su nombre y una contraseña — luego comparte ambos.</p>
+      <div style="background:rgba(0,0,0,0.3);padding:16px;border-radius:8px;margin-bottom:24px;">
+        <div class="form-row two">
+          <div>
+            <label>Nombre del participante</label>
+            <input type="text" id="newUserName" placeholder="Ej: Carlos" />
+          </div>
+          <div>
+            <label>Contraseña que le asignas</label>
+            <input type="text" id="newUserPass" placeholder="Ej: carlos123" />
+          </div>
+        </div>
+        <button class="btn-primary" onclick="onCreateUser()">Crear usuario</button>
+      </div>
+
+      <h3>👥 Usuarios registrados (${state.allUsers.length})</h3>
+      <p class="small">Por seguridad las contraseñas están encriptadas y NO se pueden ver. Pero puedes <strong>resetearlas</strong> (asignar una nueva) o <strong>eliminar</strong> usuarios.</p>
+      <div style="margin-top:16px;">${usersHtml}</div>
+      <button class="btn-secondary" style="margin-top:12px;" onclick="refreshUsers()">🔄 Refrescar</button>
+    </div>
+  `;
+}
+
+function renderAdminPicks(subTabs) {
+  // Si no hay usuario seleccionado, usar el primero
+  if (!state.adminSelectedUser && state.allUsers.length > 0) {
+    state.adminSelectedUser = state.allUsers[0].name;
+  }
+  const selectedUser = state.adminSelectedUser;
+
+  // Predicciones del usuario seleccionado
+  const userPreds = {};
+  state.allPredictions
+    .filter(p => p.user_name === selectedUser)
+    .forEach(p => { userPreds[p.match_id] = { home: p.home_score, away: p.away_score }; });
+
+  const totalPreds = Object.keys(userPreds).length;
+  let totalPts = 0;
+
+  // Construir HTML de partidos agrupados
+  let groupsHtml = "";
+  if (selectedUser) {
+    Object.keys(GROUPS).forEach(g => {
+      const groupMatches = MATCHES.filter(m => m.group === g);
+      const rows = groupMatches.map(m => {
+        const p = userPreds[m.id];
+        const r = state.results[m.id];
+        let predText = '<span style="opacity:.4;">— sin pick —</span>';
+        let badge = '';
+        if (p) {
+          predText = `<strong style="color:#facc15;">${p.home} - ${p.away}</strong>`;
+          if (r) {
+            const pts = calcPoints(p, r);
+            if (pts != null) totalPts += pts;
+            const cls = pts === 3 ? 'points-3' : pts === 1 ? 'points-1' : 'points-0';
+            const label = pts === 3 ? '+3' : pts === 1 ? '+1' : '0';
+            badge = `<span class="${cls}" style="font-weight:700;margin-left:8px;">${label}</span>`;
+          }
+        }
+        const realScore = r ? `<span class="small" style="opacity:.6;">(real: ${r.home}-${r.away})</span>` : '';
+        return `
+          <div style="display:grid;grid-template-columns:1fr 100px 1fr auto;align-items:center;gap:8px;padding:6px 10px;background:rgba(0,0,0,0.2);border-radius:6px;margin-bottom:4px;font-size:13px;">
+            <div style="display:flex;align-items:center;gap:6px;">${flag(m.home)} ${m.home}</div>
+            <div style="text-align:center;">${predText}${badge}</div>
+            <div style="text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:6px;">${m.away} ${flag(m.away)}</div>
+            <div>${realScore}</div>
+          </div>
+        `;
+      }).join("");
+      groupsHtml += `
+        <h4 style="color:#facc15;margin-top:14px;margin-bottom:6px;">Grupo ${g}</h4>
+        ${rows}
+      `;
+    });
+  }
+
+  const userOptions = state.allUsers
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(u => `<option value="${u.name}" ${u.name===selectedUser?'selected':''}>${u.name}</option>`)
+    .join("");
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>⚙️ Admin</h2>
+      ${subTabs}
+      <h3>🔍 Ver picks de un participante</h3>
+      ${state.allUsers.length === 0 ? `
+        <p class="small">No hay usuarios registrados todavía.</p>
+      ` : `
+        <div style="background:rgba(0,0,0,0.3);padding:14px;border-radius:8px;margin-bottom:16px;">
+          <label>Selecciona un participante:</label>
+          <select id="adminUserSelect" onchange="onAdminUserChange(this.value)" style="margin-top:4px;">
+            ${userOptions}
+          </select>
+        </div>
+        ${selectedUser ? `
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px;">
+            <span class="badge">${totalPreds}/${MATCHES.length} predicciones</span>
+            <span class="badge" style="background:rgba(74,222,128,0.2);color:#4ade80;">${totalPts} pts acumulados</span>
+          </div>
+          ${groupsHtml}
+        ` : ''}
+      `}
+    </div>
+  `;
+}
+
+function renderAdminLock(subTabs) {
+  const byDate = {};
+  MATCHES.forEach(m => {
+    if (!byDate[m.date]) byDate[m.date] = [];
+    byDate[m.date].push(m);
+  });
+  const sortedDates = Object.keys(byDate).sort((a, b) => dateSortKey(a) - dateSortKey(b));
+
+  const dateRows = sortedDates.map(d => {
+    const ids = byDate[d].map(m => m.id);
+    const allLocked = ids.every(id => state.lockedMatches.has(id));
+    const matchRows = byDate[d].map(m => {
+      const isLocked = state.lockedMatches.has(m.id);
+      return `
+        <div class="match-row" style="padding:8px 12px;${isLocked?'border-left:3px solid #f87171;':''}">
+          <div class="match-team"><span class="flag">${flag(m.home)}</span><span>${m.home}</span></div>
+          <div class="match-scores"><span style="color:#94a3b8;font-size:13px;">${m.time}</span></div>
+          <div class="match-team away"><span>${m.away}</span><span class="flag">${flag(m.away)}</span></div>
+          <div class="match-meta">
+            <button class="btn-secondary" style="padding:4px 12px;${isLocked?'background:#f87171;color:#0f172a;border-color:#f87171;':''}"
+              onclick="onToggleMatchLock('${m.id}')">${isLocked?'🔒 Bloqueado':'🔓 Abierto'}</button>
+          </div>
+        </div>`;
+    }).join("");
+    return `
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px;">
+          <span style="font-weight:700;color:#facc15;">📅 ${d}</span>
+          <button class="btn-secondary" style="padding:4px 14px;font-size:12px;${allLocked?'background:#f87171;color:#0f172a;border-color:#f87171;':''}"
+            onclick="onToggleDateLock('${d}',${allLocked})">${allLocked?'🔒 Desbloquear día':'🔓 Bloquear día'}</button>
+        </div>
+        ${matchRows}
+      </div>`;
+  }).join("");
+
+  const champLocked = state.lockedMatches.has("champion");
+  const champRow = `
+    <div style="background:#1e293b;border:2px solid #facc15;border-radius:10px;padding:12px 16px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div>
+          <div style="font-weight:700;color:#facc15;">🏆 Pick de Campeón</div>
+          <div class="small">Bloquea para cerrar el pick de campeón de los usuarios.</div>
+        </div>
+        <button class="btn-secondary" style="padding:6px 16px;${champLocked?'background:#f87171;color:#0f172a;border-color:#f87171;':''}"
+          onclick="onToggleMatchLock('champion')">${champLocked?'🔒 Bloqueado':'🔓 Abierto'}</button>
+      </div>
+    </div>`;
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h2>⚙️ Admin</h2>
+      ${subTabs}
+      <h3>🔒 Bloquear predicciones</h3>
+      <p class="small" style="margin-bottom:12px;">Bloquea antes de que empiece cada partido.</p>
+      ${champRow}
+      ${dateRows}
+    </div>
+  `;
+}
+
+window.onToggleDateLock = function(dateStr, currentlyAllLocked) {
+  const ids = MATCHES.filter(m => m.date === dateStr).map(m => m.id);
+  ids.forEach(id => currentlyAllLocked ? state.lockedMatches.delete(id) : state.lockedMatches.add(id));
+  saveLockState();
+  renderAdmin();
+};
+
+
+function setAdminTab(t) { state.adminTab = t; renderAdmin(); }
+function adminUserChange(name) { state.adminSelectedUser = name; renderAdmin(); }
+window.onAdminUserChange = adminUserChange;
+
+async function refreshUsers() {
+  await loadAll();
+  renderAdmin();
+  toast("Lista actualizada");
+}
+
+async function deleteUser(name) {
+  if (!confirm(`¿Seguro que quieres ELIMINAR al usuario "${name}"?\n\nEsto borra también todas sus predicciones. NO se puede deshacer.`)) return;
+  const { error } = await state.sb.from("users").delete().eq("name", name);
+  if (error) return toast("Error: " + error.message, "error");
+  toast(`🗑️ Usuario "${name}" eliminado`);
+  await loadAll();
+  renderAdmin();
+}
+
+async function resetPassword(name) {
+  const newPw = prompt(`Asigna una nueva contraseña para "${name}":\n\n(El usuario deberá usar esta nueva contraseña la próxima vez que entre.)`);
+  if (!newPw || newPw.trim().length < 1) return;
+  const hash = await hashPass(newPw.trim());
+  const { error } = await state.sb.from("users").update({ pass_hash: hash }).eq("name", name);
+  if (error) return toast("Error: " + error.message, "error");
+  toast(`🔑 Contraseña de "${name}" reseteada a: ${newPw.trim()}`);
+}
+
+async function createUser() {
+  const name = (document.getElementById("newUserName").value || "").trim();
+  const pass = (document.getElementById("newUserPass").value || "").trim();
+  if (!name || !pass) return toast("Completa nombre y contraseña", "error");
+  if (pass.length < 3) return toast("Contraseña muy corta (mínimo 3 caracteres)", "error");
+  // Verificar si ya existe
+  const { data: existing } = await state.sb.from("users").select("name").eq("name", name).maybeSingle();
+  if (existing) return toast(`Ya existe un usuario con el nombre "${name}"`, "error");
+  const hash = await hashPass(pass);
+  const { error } = await state.sb.from("users").insert({ name, pass_hash: hash });
+  if (error) return toast("Error: " + error.message, "error");
+  toast(`✅ Usuario "${name}" creado con contraseña: ${pass}`);
+  document.getElementById("newUserName").value = "";
+  document.getElementById("newUserPass").value = "";
+  await loadAll();
+  renderAdmin();
+}
+
+// (toggleLock global eliminado — ahora cada partido se bloquea individualmente)
+
+window.onDeleteUser = deleteUser;
+window.onResetPassword = resetPassword;
+window.onCreateUser = createUser;
+window.setAdminTab = setAdminTab;
+window.refreshUsers = refreshUsers;
+
+function unlockAdmin() {
+  const pw = document.getElementById("adminPw").value;
+  if (pw === ADMIN_PASSWORD) {
+    state.adminUnlocked = true;
+    toast("🔓 Admin desbloqueado");
+    renderAdmin();
+  } else {
+    toast("Contraseña incorrecta", "error");
+  }
+}
+
+window.onSaveResult = function(matchId) {
+  const h = document.getElementById("rh_" + matchId).value;
+  const a = document.getElementById("ra_" + matchId).value;
+  if (h === "" || a === "") return toast("Llena ambos marcadores", "error");
+  saveResult(matchId, h, a);
+};
+
+function exitAdmin() {
+  state.adminUnlocked = false;
+  state.view = "login";
+  render();
+}
+
+function downloadPDF() {
+  // Validar completitud
+  const completed = Object.entries(state.predictions).filter(([id, p]) =>
+    p && p.home !== "" && p.away !== "" && p.home != null && p.away != null
+  ).length;
+  if (completed < 72) {
+    return toast(`Te faltan ${72 - completed} partidos por predecir`, "error");
+  }
+  if (!window.jspdf) return toast("Error al cargar generador PDF", "error");
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const pageW = doc.internal.pageSize.getWidth();
+  let y = 18;
+
+  // Título
+  doc.setFontSize(20);
+  doc.setTextColor(15, 23, 42);
+  doc.setFont(undefined, "bold");
+  doc.text("Mundial 2026 - Quiniela", pageW / 2, y, { align: "center" });
+  y += 8;
+
+  doc.setFontSize(12);
+  doc.setFont(undefined, "normal");
+  doc.setTextColor(80, 80, 80);
+  doc.text(`Participante: ${state.user.name}`, pageW / 2, y, { align: "center" });
+  y += 5;
+  doc.text(`Fecha: ${new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}`, pageW / 2, y, { align: "center" });
+  y += 4;
+  doc.setDrawColor(250, 204, 21);
+  doc.setLineWidth(0.5);
+  doc.line(20, y, pageW - 20, y);
+  y += 8;
+
+  doc.setTextColor(0, 0, 0);
+
+  // Agrupar partidos por fecha
+  const byDate = {};
+  MATCHES.forEach(m => {
+    if (!byDate[m.date]) byDate[m.date] = [];
+    byDate[m.date].push(m);
+  });
+  const sortedDates = Object.keys(byDate).sort((a, b) => dateSortKey(a) - dateSortKey(b));
+
+  // Dos columnas
+  let col = 0;
+  let yLeft = y, yRight = y;
+  const colWidth = (pageW - 40) / 2;
+  const xLeft = 20, xRight = 20 + colWidth + 5;
+
+  sortedDates.forEach(d => {
+    const x = col === 0 ? xLeft : xRight;
+    let yCol = col === 0 ? yLeft : yRight;
+
+    // Salto de página si no cabe (estimar altura: 6 header + 4.5 por partido + 3)
+    const estHeight = 9 + byDate[d].length * 4.5;
+    if (yCol + estHeight > 280) {
+      doc.addPage();
+      yLeft = 20;
+      yRight = 20;
+      yCol = 20;
+    }
+
+    doc.setFontSize(11);
+    doc.setFont(undefined, "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.setFillColor(250, 204, 21);
+    doc.rect(x, yCol - 4, colWidth - 5, 6, "F");
+    doc.text(d, x + 2, yCol);
+    yCol += 6;
+
+    doc.setFontSize(8.5);
+    doc.setFont(undefined, "normal");
+    doc.setTextColor(40, 40, 40);
+
+    byDate[d].forEach(m => {
+      const p = state.predictions[m.id];
+      const trim = (s) => s.length > 13 ? s.substring(0, 12) + "." : s;
+      const homeTeam = trim(m.home);
+      const awayTeam = trim(m.away);
+      doc.setFont(undefined, "normal");
+      doc.text(`(${m.group})`, x + 1, yCol);
+      doc.text(homeTeam, x + 8, yCol);
+      doc.setFont(undefined, "bold");
+      doc.text(`${p.home}-${p.away}`, x + colWidth/2 + 2, yCol, { align: "center" });
+      doc.setFont(undefined, "normal");
+      doc.text(awayTeam, x + colWidth - 7, yCol, { align: "right" });
+      yCol += 4.5;
+    });
+    yCol += 3;
+
+    if (col === 0) yLeft = yCol; else yRight = yCol;
+    col = (col + 1) % 2;
+  });
+
+  // Footer
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(128, 128, 128);
+    doc.text("Marcador exacto: 3 pts  |  Solo ganador: 1 pt", pageW / 2, 285, { align: "center" });
+    doc.text(`Página ${i} de ${pageCount}`, pageW / 2, 290, { align: "center" });
+  }
+
+  const safeName = state.user.name.replace(/[^a-zA-Z0-9]/g, "_");
+  doc.save(`mundial2026-quiniela-${safeName}.pdf`);
+  toast("📄 PDF descargado");
+}
+
+window.onDownloadPDF = downloadPDF;
+
+
+window.go = go;
+window.logout = logout;
+window.doLogin = doLogin;
+window.setGroup = setGroup;
+window.unlockAdmin = unlockAdmin;
+window.clearResult = clearResult;
+window.exitAdmin = exitAdmin;
+
+// =====================================================================
+//  Boot
+// =====================================================================
+async function boot() {
+  initSupabase();
+  if (state.configError) return render();
+  const saved = localStorage.getItem("mundial26_user");
+  if (saved) {
+    try {
+      state.user = JSON.parse(saved);
+      await loadAll();
+      state.view = "predict";
+    } catch (e) { state.user = null; }
+  }
+  render();
+}
+
+boot();
+</script>
+</body>
+</html>
